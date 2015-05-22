@@ -6,7 +6,7 @@ using System.Linq;
 /**
 * Important TODO: Make this CSV compliant. Right now it doesn't support escaped line breaks.
 */
-public class CSVReader : TableReader {
+public class CSVReader : ITableReader {
 
    private string m_fileName;
    private string[] m_headers;
