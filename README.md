@@ -1,23 +1,25 @@
-Shiris
+Citrus
 ====
 
-Shiris Data Visualization
+Citrus Data Visualization
 
 Summary 
 --------
 
-Shiris is a program written in the Unity3D game engine which can be used to represent data visually. Once imported into the program, this data can be navigated in 3D. 
+Citrus is a program written in the Unity3D game engine which can be used to represent data visually. 
+Once imported into the program, this data can be navigated in 3D. 
 
 Departure from Iris
 -----------
 
-Shiris is an overhaul of the prototype iris.
+Citrus is an overhaul of the prototype iris.
 
 Notable departures from the original program include: 
 
  - Implementation in C# instead of javascript
  - Unity's now deprecated GUI system will no longer be used. 
- - The side toolbar will be retired in exchange for a windowing system similar to most IDEs and Unity itself. This was just not feasible with the old GUI framework.
+ - The side toolbar will be retired in exchange for a windowing system similar to most IDEs and 
+   Unity itself. This was just not feasible with the old GUI framework.
  
  Legal
 --------
