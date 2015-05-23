@@ -49,3 +49,5 @@ Temporary Items
 Library/*
 Temp/*
 *.meta
+citrus_Data/*
+*citrus.exe
