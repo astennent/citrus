@@ -48,7 +48,7 @@ public class NestedPanel : MonoBehaviour {
    void Update () {
       if (Input.GetButtonDown("Jump") && m_firstChild == null) {
          bool vertical = (Random.value < 0.5);
-         Split(true);
+         Split(vertical);
       }
    }
 
@@ -105,7 +105,6 @@ public class NestedPanel : MonoBehaviour {
     * with their correctly updated sizes. 
     */
    private void Redraw() {
-
       if (!m_firstChild || !m_secondChild) {
          return;
       }
@@ -119,22 +118,23 @@ public class NestedPanel : MonoBehaviour {
       Rect rect = GetRect();
       RectTransform resizerTransform = m_resizerButton.GetComponent<RectTransform>();
       if (m_splitVertical) {
-         resizerTransform.anchoredPosition = new Vector2(rect.width * m_splitRatio - scaledResizerWidth/2, 0);
-         resizerTransform.sizeDelta = new Vector2(scaledResizerWidth, rect.height);
+         resizerTransform.anchoredPosition = new Vector2(rect.width * m_splitRatio - scaledResizerWidth/2, -2*scaledResizerWidth);
+         resizerTransform.sizeDelta = new Vector2(scaledResizerWidth, rect.height + 2*scaledResizerWidth);
       } else {
          resizerTransform.anchoredPosition = new Vector2(0, rect.height * m_splitRatio - scaledResizerWidth/2);
          resizerTransform.sizeDelta = new Vector2(rect.width, scaledResizerWidth);
       }
       
-      firstTransform.anchoredPosition = new Vector2(rect.xMin, rect.yMin);
       if (m_splitVertical) {
+         firstTransform.anchoredPosition = new Vector2(rect.xMin, rect.yMin);
          firstTransform.sizeDelta = new Vector2(-rect.width * inverseSplitRatio - scaledResizerWidth/2, 0);
          secondTransform.sizeDelta = new Vector2(-rect.width * m_splitRatio - scaledResizerWidth/2, 0);
          secondTransform.anchoredPosition = new Vector2(rect.xMin + rect.width*m_splitRatio + scaledResizerWidth/2, rect.yMin);
       } else {
+         firstTransform.anchoredPosition = new Vector2(rect.xMin, rect.yMin);
          firstTransform.sizeDelta = new Vector2(0, -rect.height * inverseSplitRatio - scaledResizerWidth/2);
-         secondTransform.sizeDelta = new Vector2(0, -rect.height * m_splitRatio + scaledResizerWidth/2);
-         secondTransform.anchoredPosition = new Vector2(rect.xMin, rect.yMin + rect.height*m_splitRatio + scaledResizerWidth/2);
+         secondTransform.sizeDelta = new Vector2(0, -rect.height * m_splitRatio - scaledResizerWidth*2);
+         secondTransform.anchoredPosition = new Vector2(rect.xMin, rect.yMin + rect.height*m_splitRatio + scaledResizerWidth*2);
       }
 
       m_firstChild.Redraw();
