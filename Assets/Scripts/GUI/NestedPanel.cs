@@ -16,7 +16,7 @@ public class NestedPanel : MonoBehaviour {
    public UnityEngine.UI.Image m_clientArea;
 
    public UnityEngine.UI.Button m_resizerButton;
-   private static int resizerWidth = 6;
+   private static int resizerWidth = 4;
 
    public RectTransform m_tabHolderTransform;
 
@@ -47,6 +47,7 @@ public class NestedPanel : MonoBehaviour {
    // Update is called once per frame
    void Update () {
       if (Input.GetButtonDown("Jump") && m_firstChild == null) {
+         bool vertical = (Random.value < 0.5);
          Split(true);
       }
    }
@@ -79,27 +80,37 @@ public class NestedPanel : MonoBehaviour {
       //Activate resizer.
       m_resizerButton.gameObject.SetActive(true);
 
-      SetSplitRatio(0.5f);
-
       // Deactivate self.
       m_captionRect.gameObject.SetActive(false);
       m_clientArea.gameObject.SetActive(false);
       GetComponent<UnityEngine.UI.Image>().enabled = (false);
 
-
+      SetSplitRatio(0.5f);
    }
 
    public void OnDragResizer(Vector2 mouseDelta) {
       float dragDistance = (m_splitVertical) ? mouseDelta.x : mouseDelta.y;
       float fullDistance = (m_splitVertical) ? GetRect().width : GetRect().height;
       float normalizedDelta = dragDistance / fullDistance;
-      m_splitRatio += normalizedDelta;
-      Debug.Log(m_splitRatio);
+      SetSplitRatio(m_splitRatio + normalizedDelta);
    }
 
    private void SetSplitRatio(float ratio) {
-      m_splitRatio = ratio;      
+      m_splitRatio = ratio;   
+      Redraw();
+   }
 
+   /**
+    * Called to handle events like resizing. Ensures that this panel and all children are drawn
+    * with their correctly updated sizes. 
+    */
+   private void Redraw() {
+
+      if (!m_firstChild || !m_secondChild) {
+         return;
+      }
+
+      float inverseSplitRatio = 1 - m_splitRatio; 
       float scaledResizerWidth = DPIScaler.ScaleFrom96(resizerWidth);
 
       RectTransform firstTransform = m_firstChild.GetComponent<RectTransform>();
@@ -108,23 +119,26 @@ public class NestedPanel : MonoBehaviour {
       Rect rect = GetRect();
       RectTransform resizerTransform = m_resizerButton.GetComponent<RectTransform>();
       if (m_splitVertical) {
+         resizerTransform.anchoredPosition = new Vector2(rect.width * m_splitRatio - scaledResizerWidth/2, 0);
          resizerTransform.sizeDelta = new Vector2(scaledResizerWidth, rect.height);
       } else {
+         resizerTransform.anchoredPosition = new Vector2(0, rect.height * m_splitRatio - scaledResizerWidth/2);
          resizerTransform.sizeDelta = new Vector2(rect.width, scaledResizerWidth);
       }
       
       firstTransform.anchoredPosition = new Vector2(rect.xMin, rect.yMin);
       if (m_splitVertical) {
-         firstTransform.sizeDelta = new Vector2(-rect.width/2 - scaledResizerWidth/2, 0);
-         secondTransform.sizeDelta = new Vector2(-rect.width/2 - scaledResizerWidth/2, 0);
-         secondTransform.anchoredPosition = new Vector2(rect.xMin + rect.width/2 + scaledResizerWidth/2, rect.yMin);
+         firstTransform.sizeDelta = new Vector2(-rect.width * inverseSplitRatio - scaledResizerWidth/2, 0);
+         secondTransform.sizeDelta = new Vector2(-rect.width * m_splitRatio - scaledResizerWidth/2, 0);
+         secondTransform.anchoredPosition = new Vector2(rect.xMin + rect.width*m_splitRatio + scaledResizerWidth/2, rect.yMin);
       } else {
-         firstTransform.sizeDelta = new Vector2(0, -rect.height/2 - scaledResizerWidth/2);
-         secondTransform.sizeDelta = new Vector2(0, -rect.height/2 + scaledResizerWidth/2);
-         secondTransform.anchoredPosition = new Vector2(rect.xMin, rect.yMin + rect.height/2 + scaledResizerWidth/2);
+         firstTransform.sizeDelta = new Vector2(0, -rect.height * inverseSplitRatio - scaledResizerWidth/2);
+         secondTransform.sizeDelta = new Vector2(0, -rect.height * m_splitRatio + scaledResizerWidth/2);
+         secondTransform.anchoredPosition = new Vector2(rect.xMin, rect.yMin + rect.height*m_splitRatio + scaledResizerWidth/2);
       }
 
-
+      m_firstChild.Redraw();
+      m_secondChild.Redraw();
    }
 
    Rect GetRect() {
