@@ -5,7 +5,10 @@ public class PanelManager : MonoBehaviour {
 
    public NestedPanel nestedPanelPrefab;
    public Tab tabPrefab;
-   
+
+   public Texture2D leftRightArrow;
+   public Texture2D upDownArrow;
+
    static PanelManager s_instance;
 
    // Use this for initialization
@@ -21,5 +24,12 @@ public class PanelManager : MonoBehaviour {
       return s_instance.tabPrefab;
    }
 
+   public static Texture2D GetLeftRightArrow() {
+      return s_instance.leftRightArrow;
+   }
+
+   public static Texture2D GetUpDownArrow() {
+      return s_instance.upDownArrow;
+   }
    
 }

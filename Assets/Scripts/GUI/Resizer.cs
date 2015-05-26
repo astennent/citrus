@@ -6,44 +6,48 @@ using UnityEngine.EventSystems;
 public class Resizer : MonoBehaviour {
 
    public NestedPanel m_panel;
-   EventTrigger eventTrigger = null;
 
-   void Start()
-   {
-      eventTrigger = gameObject.GetComponent<EventTrigger>();
+   private bool m_isDragging = false;
+   private bool m_isHovered = false;
 
-      AddEventTrigger(OnPointerDrag, EventTriggerType.Drag);
-
-   }
-
-   private void AddEventTrigger(UnityAction action, EventTriggerType triggerType)
-   {
-      // Create a nee TriggerEvent and add a listener
-      EventTrigger.TriggerEvent trigger = new EventTrigger.TriggerEvent();
-      trigger.AddListener((eventData) => action()); // you can capture and pass the event data to the listener
-
-      // Create and initialise EventTrigger.Entry using the created TriggerEvent
-      EventTrigger.Entry entry = new EventTrigger.Entry() { callback = trigger, eventID = triggerType };
-
-      // Add the EventTrigger.Entry to delegates list on the EventTrigger
-      eventTrigger.delegates.Add(entry);
-   }
-
-   private void AddEventTrigger(UnityAction<BaseEventData> action, EventTriggerType triggerType)
-   {
-      // Create a nee TriggerEvent and add a listener
-      EventTrigger.TriggerEvent trigger = new EventTrigger.TriggerEvent();
-      trigger.AddListener((eventData) => action(eventData)); // you can capture and pass the event data to the listener
-
-      // Create and initialise EventTrigger.Entry using the created TriggerEvent
-      EventTrigger.Entry entry = new EventTrigger.Entry() { callback = trigger, eventID = triggerType };
-
-      // Add the EventTrigger.Entry to delegates list on the EventTrigger
-      eventTrigger.delegates.Add(entry);
-   }
-
-   void OnPointerDrag(BaseEventData data) {
+   public void OnPointerDrag(BaseEventData data) {
       Vector2 delta = ((PointerEventData)data).delta;
       m_panel.OnDragResizer(delta);
+   }
+
+   public void OnPointerEnter(BaseEventData data) {
+      m_isHovered = true;
+      Cursor.visible = false;
+   }
+
+   public void OnPointerExit(BaseEventData data) {
+      m_isHovered = false;
+      Cursor.visible = !m_isDragging;
+      Debug.Log(Cursor.visible);
+   }
+
+   public void OnPointerBeginDrag(BaseEventData data) {
+      m_isDragging = true;
+      Cursor.visible = false;
+   }
+
+   public void OnPointerEndDrag(BaseEventData data) {
+      m_isDragging = false;
+      Cursor.visible = !m_isHovered;
+      Debug.Log(Cursor.visible);
+   }
+
+   void OnGUI() {
+      if (!m_isHovered && !m_isDragging) {
+         return;
+      }
+
+      Cursor.visible = false;
+      float cursorSize = DPIScaler.ScaleFrom96(25);
+      Texture2D cursorImage = (m_panel.IsSplitVertical()) 
+         ? PanelManager.GetLeftRightArrow() 
+         : PanelManager.GetUpDownArrow();
+      GUI.DrawTexture(new Rect(Input.mousePosition.x - cursorSize/2, 
+            Screen.height - Input.mousePosition.y - cursorSize/2, cursorSize, cursorSize), cursorImage);
    }
 }

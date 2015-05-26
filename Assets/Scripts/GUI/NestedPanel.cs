@@ -16,7 +16,7 @@ public class NestedPanel : MonoBehaviour {
    public UnityEngine.UI.Image m_clientArea;
 
    public UnityEngine.UI.Button m_resizerButton;
-   private static int resizerWidth = 4;
+   private static int resizerWidth = 6;
 
    public RectTransform m_tabHolderTransform;
 
@@ -54,7 +54,7 @@ public class NestedPanel : MonoBehaviour {
 
    void Start() {
       // Scale the caption to DPI.
-      int captionHeight = (int)DPIScaler.ScaleFrom96(captionRectHeight);
+      float captionHeight = DPIScaler.ScaleFrom96(captionRectHeight);
       RectTransform captionTransform = this.m_captionRect.GetComponent<RectTransform>();
       captionTransform.sizeDelta = new Vector2(captionTransform.sizeDelta.x, captionHeight);
       captionTransform.anchoredPosition = new Vector2(0, 0);
@@ -111,17 +111,16 @@ public class NestedPanel : MonoBehaviour {
 
       float inverseSplitRatio = 1 - m_splitRatio; 
       float scaledResizerWidth = DPIScaler.ScaleFrom96(resizerWidth);
-
       RectTransform firstTransform = m_firstChild.GetComponent<RectTransform>();
       RectTransform secondTransform = m_secondChild.GetComponent<RectTransform>();
 
       Rect rect = GetRect();
       RectTransform resizerTransform = m_resizerButton.GetComponent<RectTransform>();
       if (m_splitVertical) {
-         resizerTransform.anchoredPosition = new Vector2(rect.width * m_splitRatio - scaledResizerWidth/2, -2*scaledResizerWidth);
-         resizerTransform.sizeDelta = new Vector2(scaledResizerWidth, rect.height + 2*scaledResizerWidth);
+         resizerTransform.anchoredPosition = new Vector2(rect.width * m_splitRatio - scaledResizerWidth/2, -scaledResizerWidth);
+         resizerTransform.sizeDelta = new Vector2(scaledResizerWidth, rect.height + scaledResizerWidth);
       } else {
-         resizerTransform.anchoredPosition = new Vector2(0, rect.height * m_splitRatio - scaledResizerWidth/2);
+         resizerTransform.anchoredPosition = new Vector2(0, rect.height * m_splitRatio - scaledResizerWidth);
          resizerTransform.sizeDelta = new Vector2(rect.width, scaledResizerWidth);
       }
       
@@ -132,16 +131,20 @@ public class NestedPanel : MonoBehaviour {
          secondTransform.anchoredPosition = new Vector2(rect.xMin + rect.width*m_splitRatio + scaledResizerWidth/2, rect.yMin);
       } else {
          firstTransform.anchoredPosition = new Vector2(rect.xMin, rect.yMin);
-         firstTransform.sizeDelta = new Vector2(0, -rect.height * inverseSplitRatio - scaledResizerWidth/2);
-         secondTransform.sizeDelta = new Vector2(0, -rect.height * m_splitRatio - scaledResizerWidth*2);
-         secondTransform.anchoredPosition = new Vector2(rect.xMin, rect.yMin + rect.height*m_splitRatio + scaledResizerWidth*2);
+         firstTransform.sizeDelta = new Vector2(0, -rect.height * inverseSplitRatio - scaledResizerWidth);
+         secondTransform.sizeDelta = new Vector2(0, -rect.height * m_splitRatio - scaledResizerWidth);
+         secondTransform.anchoredPosition = new Vector2(rect.xMin, rect.yMin + rect.height*m_splitRatio + scaledResizerWidth);
       }
 
       m_firstChild.Redraw();
       m_secondChild.Redraw();
    }
 
-   Rect GetRect() {
+   public Rect GetRect() {
       return GetComponent<RectTransform>().rect;
+   }
+
+   public bool IsSplitVertical() {
+      return m_splitVertical;
    }
 }
