@@ -5,11 +5,13 @@ using UnityEngine.EventSystems;
 public class Tab : MonoBehaviour {
 
    public static float width = DPIScaler.ScaleFrom96(70f);
+   public static float height = DPIScaler.ScaleFrom96(20);
 
    private string m_name;
    private CaptionBar m_captionBar;
-   public UnityEngine.UI.Text text;
+   private int m_renderIndex; // only used for animations, don't rely on this for actual logic.
 
+   public UnityEngine.UI.Text text;
 
 	public static Tab Instantiate(string name, CaptionBar captionBar) {
       Tab tab = (Tab)GameObject.Instantiate(PanelManager.GetTabPrefab(),
@@ -65,7 +67,24 @@ public class Tab : MonoBehaviour {
    }
 
    public static Vector2 GetTabSize() {
-      return new Vector2(width, CaptionBar.height);
+      return new Vector2(width, height);
    }
 
+   public void SetRenderIndex(int i) {
+      m_renderIndex = i;
+      RectTransform rectTransform = GetComponent<RectTransform>();
+      rectTransform.sizeDelta = new Vector2(width, 0);
+   }
+
+   public void FinishAnimation() {
+      GetComponent<RectTransform>().anchoredPosition = new Vector2(width * m_renderIndex, 0);
+   }
+
+   void Update() {
+      RectTransform rectTransform = GetComponent<RectTransform>();
+      float currentPosition = rectTransform.anchoredPosition.x;
+      float desiredPosition = width * m_renderIndex;
+      float transitionPosition = Mathf.Lerp(currentPosition, desiredPosition, .5f);
+      rectTransform.anchoredPosition = new Vector2(transitionPosition, 0);
+   }
 }

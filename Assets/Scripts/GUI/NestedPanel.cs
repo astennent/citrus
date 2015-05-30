@@ -39,7 +39,7 @@ public class NestedPanel : MonoBehaviour {
 
    void Start() {
       // Scale the caption to DPI.
-      float captionHeight = CaptionBar.height;
+      float captionHeight = Tab.height;
       RectTransform captionTransform = this.m_captionBar.GetComponent<RectTransform>();
       captionTransform.sizeDelta = new Vector2(captionTransform.sizeDelta.x, captionHeight);
       captionTransform.anchoredPosition = new Vector2(0, 0);

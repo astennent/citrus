@@ -21,21 +21,21 @@ public abstract class DragTarget : MonoBehaviour, IPointerEnterHandler, IPointer
    }
 
    IEnumerator TrackPointer() {
-      var ray = GetComponentInParent<GraphicRaycaster>();
+      while(Application.isPlaying) {
+         if (DragManager.IsDragging()) {
+            Vector2 localPos = GetLocalMousePosition();
+            OnPointerMoveWhileDragging(localPos);
+         }
+         yield return 0;
+      }        
+   }
 
-      if(ray != null) {
-         while(Application.isPlaying) {
-            if (DragManager.IsDragging()) {
-               Vector2 localPos;
-               RectTransformUtility.ScreenPointToLocalPointInRectangle(transform as RectTransform, 
-                     Input.mousePosition, ray.eventCamera, out localPos );
-               OnPointerMoveWhileDragging(localPos);
-            }
-            yield return 0;
-         }        
-      }
-      else {
-         UnityEngine.Debug.LogWarning( "Could not find GraphicRaycaster and/or StandaloneInputModule" );   
-      }     
+   protected Vector2 GetLocalMousePosition() {
+      var ray = GetComponentInParent<GraphicRaycaster>();
+      Vector2 localPos;
+      RectTransformUtility.ScreenPointToLocalPointInRectangle(transform as RectTransform, 
+            Input.mousePosition, ray.eventCamera, out localPos);
+      return localPos;
    }
 }
+

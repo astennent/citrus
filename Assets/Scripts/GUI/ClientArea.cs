@@ -22,12 +22,7 @@ public class ClientArea : DragTarget, IPointerEnterHandler, IPointerExitHandler
    }
 
    public override void HandleTabDrop(Tab tab) {
-      var ray = GetComponentInParent<GraphicRaycaster>();
-      Vector2 mousePosition;
-      RectTransformUtility.ScreenPointToLocalPointInRectangle(transform as RectTransform, 
-            Input.mousePosition, ray.eventCamera, out mousePosition );
-
-      FillSide side = GetFillSide(mousePosition);
+      FillSide side = GetFillSide(GetLocalMousePosition());
 
       if (side == FillSide.FULL) {
          panel.AddTab(tab);
