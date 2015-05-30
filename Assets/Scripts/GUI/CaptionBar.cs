@@ -22,21 +22,29 @@ public class CaptionBar : DragTarget {
    public void AddTab(Tab tab) {
       tab.SetCaptionBar(this);
       m_tabs.Add(tab);
-      RedrawTabs();
+      Redraw();
    }
 
    public void RemoveTab(Tab tab) {
       m_tabs.Remove(tab);
-      RedrawTabs();
+      if (m_tabs.Count == 0) {
+         panel.OnLastTabRemoved();
+      } else {
+         Redraw();
+      }
    }
 
-   public void RedrawTabs() {
+   public void Redraw() {
       for (int i = 0 ; i < m_tabs.Count ; i++) {
          Tab tab = m_tabs[i];
          RectTransform tabTransform = tab.GetComponent<RectTransform>();
          tabTransform.sizeDelta = new Vector2(Tab.width, 0);
          tabTransform.anchoredPosition = new Vector2(Tab.width * i, 0);
       }
+   }
+
+   public List<Tab> GetTabs() {
+      return m_tabs;
    }
 
 }

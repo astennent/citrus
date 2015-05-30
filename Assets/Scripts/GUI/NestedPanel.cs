@@ -7,6 +7,7 @@ public class NestedPanel : MonoBehaviour {
    private bool m_splitVertical; // if true, split is drawn up down, children are on left and right.
    private float m_splitRatio; // Distance from the top or left.
    
+   public NestedPanel m_parent;
    public NestedPanel m_firstChild; // top or left
    public NestedPanel m_secondChild; // bottom or right
 
@@ -19,10 +20,11 @@ public class NestedPanel : MonoBehaviour {
 
    public RectTransform m_tabHolderTransform;
 
-   static NestedPanel Instantiate(Transform parent) {
+   static NestedPanel Instantiate(NestedPanel parent) {
       NestedPanel panel = (NestedPanel)GameObject.Instantiate(PanelManager.GetNestedPanelPrefab(),
             Vector3.zero, new Quaternion(0,0,0,0));
-      panel.transform.SetParent(parent);
+      panel.m_parent = parent;
+      panel.transform.SetParent(parent.transform);
       
       // Position new panel directly on top of the parent.
       RectTransform transform = panel.GetComponent<RectTransform>();
@@ -60,18 +62,39 @@ public class NestedPanel : MonoBehaviour {
 
    void Split(bool vertical) {
       m_splitVertical = vertical;
-      m_firstChild = NestedPanel.Instantiate(transform);
-      m_secondChild = NestedPanel.Instantiate(transform);
+      UpdateActivationState(true);
+      SetSplitRatio(0.5f);
+   } 
 
+   public void Merge(NestedPanel deadChild) {
+      NestedPanel livingChild = (m_firstChild == deadChild) ? m_secondChild : m_firstChild;
+      List<Tab> livingTabs = livingChild.m_captionBar.GetTabs();
+      foreach (Tab tab in livingTabs) {
+         m_captionBar.AddTab(tab);
+      }
+      UpdateActivationState(false);
+   }
+
+   private void UpdateActivationState(bool isBecomingLeaf) {
       //Activate resizer.
-      m_resizerButton.gameObject.SetActive(true);
+      m_resizerButton.gameObject.SetActive(isBecomingLeaf);
 
       // Deactivate self.
-      m_captionBar.gameObject.SetActive(false);
-      m_clientArea.gameObject.SetActive(false);
-      GetComponent<UnityEngine.UI.Image>().enabled = (false);
+      m_captionBar.gameObject.SetActive(!isBecomingLeaf);
+      m_clientArea.gameObject.SetActive(!isBecomingLeaf);
+      GetComponent<UnityEngine.UI.Image>().enabled = (!isBecomingLeaf);
 
-      SetSplitRatio(0.5f);
+      if (!isBecomingLeaf) {
+         Destroy(m_firstChild.gameObject);
+         Destroy(m_secondChild.gameObject);
+      }
+
+      m_firstChild = (isBecomingLeaf) ? NestedPanel.Instantiate(this) : null;
+      m_secondChild = (isBecomingLeaf) ? NestedPanel.Instantiate(this) : null;
+   }
+
+   public void OnLastTabRemoved() {
+      m_parent.Merge(this);
    }
 
    public void OnDragResizer(Vector2 mouseDelta) {

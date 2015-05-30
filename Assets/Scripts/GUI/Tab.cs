@@ -38,7 +38,7 @@ public class Tab : MonoBehaviour {
    }
 
    public void OnPointerBeginDrag(BaseEventData data) {
-      transform.SetParent(PanelManager.GetBottomCanvas().transform); //Bring to the front.
+      transform.SetParent(PanelManager.GetBottomCanvas().transform); //Send to back
       m_captionBar.RemoveTab(this);
       CursorManager.StartDrawingTabDrag();
    }
