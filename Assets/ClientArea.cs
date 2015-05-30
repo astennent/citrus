@@ -16,6 +16,10 @@ public class ClientArea : DragTarget, IPointerEnterHandler, IPointerExitHandler
       BOTTOM
    };
 
+   void Start() {
+      GetComponent<UnityEngine.UI.Image>().color = GUISchemeManager.clientBackground;
+   }
+
    public override void HandleTabDrop(Tab tab) {
       var ray = GetComponentInParent<GraphicRaycaster>();
       Vector2 mousePosition;

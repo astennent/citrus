@@ -60,6 +60,7 @@ public class Tab : MonoBehaviour {
       colors.highlightedColor = (active) 
          ? GUISchemeManager.activeTabHighlighted
          : GUISchemeManager.inactiveTabHighlighted;
+      colors.pressedColor = GUISchemeManager.pressedTab;
       buttonComponent.colors = colors;
    }
 
