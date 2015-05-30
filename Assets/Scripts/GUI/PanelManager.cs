@@ -7,10 +7,11 @@ public class PanelManager : MonoBehaviour {
    public Tab tabPrefab;
 
    public NestedPanel root;
+   public UnityEngine.Canvas mainCanvas;
    public UnityEngine.Canvas topCanvas;
    public UnityEngine.Canvas bottomCanvas;
 
-   static PanelManager s_instance;
+   private static PanelManager s_instance;
 
    // Use this for initialization
    void Start () {
@@ -41,14 +42,9 @@ public class PanelManager : MonoBehaviour {
       return s_instance.bottomCanvas;
    }
 
-   private static DragTarget s_dragTarget;
-   public static DragTarget GetDragTarget() {
-      return s_dragTarget;
+   public static void SetRoot(NestedPanel newRoot) {
+      s_instance.root = newRoot;
+      newRoot.transform.SetParent(s_instance.mainCanvas.transform);
    }
-   public static void NotifyDragTarget(DragTarget target) {
-      s_dragTarget = target;
-   }
-
-
 
 }

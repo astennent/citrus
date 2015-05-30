@@ -62,35 +62,51 @@ public class NestedPanel : MonoBehaviour {
 
    void Split(bool vertical) {
       m_splitVertical = vertical;
-      UpdateActivationState(true);
+
+      m_firstChild = NestedPanel.Instantiate(this);
+      m_secondChild = NestedPanel.Instantiate(this);
+
+      //Activate resizer.
+      m_resizerButton.gameObject.SetActive(true);
+
+      // Deactivate self.
+      m_captionBar.gameObject.SetActive(false);
+      m_clientArea.gameObject.SetActive(false);
+      GetComponent<UnityEngine.UI.Image>().enabled = (false);
+
+
       SetSplitRatio(0.5f);
    } 
 
    public void Merge(NestedPanel deadChild) {
       NestedPanel livingChild = (m_firstChild == deadChild) ? m_secondChild : m_firstChild;
-      List<Tab> livingTabs = livingChild.m_captionBar.GetTabs();
-      foreach (Tab tab in livingTabs) {
-         m_captionBar.AddTab(tab);
+
+      // Update living child's parent pointer.
+      livingChild.m_parent = m_parent;
+
+      if (m_parent) {
+         // Update parent's child pointer.
+         if (m_parent.m_firstChild == this) {
+            m_parent.m_firstChild = livingChild;
+         } else {
+            m_parent.m_secondChild = livingChild;
+         }
+
+         Transform parentTransform = m_parent.transform;
+         livingChild.transform.SetParent(parentTransform);
+      
+         // Recalculate sizes
+         PanelManager.GetRoot().Redraw();
+      } 
+      else {
+         // If this is the root, the living child becomes the new root.
+         PanelManager.SetRoot(livingChild);
+         RectTransform rootTransform = livingChild.GetComponent<RectTransform>();
+         rootTransform.anchoredPosition = Vector2.zero;
+         rootTransform.sizeDelta = Vector2.zero;
       }
-      UpdateActivationState(false);
-   }
 
-   private void UpdateActivationState(bool isBecomingLeaf) {
-      //Activate resizer.
-      m_resizerButton.gameObject.SetActive(isBecomingLeaf);
-
-      // Deactivate self.
-      m_captionBar.gameObject.SetActive(!isBecomingLeaf);
-      m_clientArea.gameObject.SetActive(!isBecomingLeaf);
-      GetComponent<UnityEngine.UI.Image>().enabled = (!isBecomingLeaf);
-
-      if (!isBecomingLeaf) {
-         Destroy(m_firstChild.gameObject);
-         Destroy(m_secondChild.gameObject);
-      }
-
-      m_firstChild = (isBecomingLeaf) ? NestedPanel.Instantiate(this) : null;
-      m_secondChild = (isBecomingLeaf) ? NestedPanel.Instantiate(this) : null;
+      Destroy(gameObject); // Destroy the middle-man.
    }
 
    public void OnLastTabRemoved() {
@@ -128,7 +144,8 @@ public class NestedPanel : MonoBehaviour {
       if (m_splitVertical) {
          resizerTransform.anchoredPosition = new Vector2(rect.width * m_splitRatio - scaledResizerWidth/2, -scaledResizerWidth);
          resizerTransform.sizeDelta = new Vector2(scaledResizerWidth, rect.height + scaledResizerWidth);
-      } else {
+      }
+      else {
          resizerTransform.anchoredPosition = new Vector2(0, rect.height * m_splitRatio - scaledResizerWidth);
          resizerTransform.sizeDelta = new Vector2(rect.width, scaledResizerWidth);
       }
@@ -138,7 +155,8 @@ public class NestedPanel : MonoBehaviour {
          firstTransform.sizeDelta = new Vector2(-rect.width * inverseSplitRatio - scaledResizerWidth/2, 0);
          secondTransform.sizeDelta = new Vector2(-rect.width * m_splitRatio - scaledResizerWidth/2, 0);
          secondTransform.anchoredPosition = new Vector2(rect.xMin + rect.width*m_splitRatio + scaledResizerWidth/2, rect.yMin);
-      } else {
+      }
+      else {
          firstTransform.anchoredPosition = new Vector2(rect.xMin, rect.yMin);
          firstTransform.sizeDelta = new Vector2(0, -rect.height * inverseSplitRatio - scaledResizerWidth);
          secondTransform.sizeDelta = new Vector2(0, -rect.height * m_splitRatio - scaledResizerWidth);

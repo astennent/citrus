@@ -33,21 +33,16 @@ public class Tab : MonoBehaviour {
       return m_name;
    }
 
-   public void OnPointerDrag(BaseEventData data) {
-      
-   }
-
    public void OnPointerBeginDrag(BaseEventData data) {
       transform.SetParent(PanelManager.GetBottomCanvas().transform); //Send to back
       m_captionBar.RemoveTab(this);
-      CursorManager.StartDrawingTabDrag();
+      DragManager.StartDrag();
    }
 
    public void OnPointerEndDrag(BaseEventData data) {
-      DragTarget hit = PanelManager.GetDragTarget();
+      DragTarget hit = DragManager.GetCurrentTarget();
       hit.HandleTabDrop(this);
-      //transform
-      CursorManager.EndDrawingTabDrag();
+      DragManager.EndDrag();
    }
 
    public static Vector2 GetTabSize() {

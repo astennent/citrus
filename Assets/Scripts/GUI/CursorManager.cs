@@ -12,8 +12,6 @@ public class CursorManager : MonoBehaviour {
    static bool isDrawingResize = false;
    static bool resizeVerticalArrow = false;
 
-   static bool isDrawingDrag = false;
-
    public static void StartDrawingResize(NestedPanel panel) {
       Cursor.visible = false;
       isDrawingResize = true;
@@ -26,30 +24,32 @@ public class CursorManager : MonoBehaviour {
    }
 
    public static void StartDrawingTabDrag() {
+      // TODO: Screenshots!
       Cursor.visible = false;
-      isDrawingDrag = true;
    }
 
-   public static void EndDrawingTabDrag() {
+   public static void StopDrawingTabDrag() {
       Cursor.visible = false;
-      isDrawingDrag = false;
    }
 
    void OnGUI() {
-      if (!isDrawingDrag && !isDrawingResize) {
+      if (!DragManager.IsDragging() && !isDrawingResize) {
          return;
       }
-
       
       Rect cursorRect;
       Texture2D cursorImage;
-      if (isDrawingDrag) {
-         DragTarget hit = PanelManager.GetDragTarget();
-         //if (true) {
+      if (DragManager.IsDragging()) {
+         DragTarget hit = DragManager.GetCurrentTarget();
+         bool isOverCaption = (hit is CaptionBar);
+         if (isOverCaption) {
             cursorRect = CreateRectOnMousePosition(Tab.GetTabSize());
             cursorImage = dragImage;
-         //} 
-
+         } 
+         else {
+            cursorRect = CreateRectOnMousePosition(Tab.GetTabSize());
+            cursorImage = dragImage;
+         }
       }
       else {//(isDrawingResize) {
          float cursorSize = DPIScaler.ScaleFrom96(25);
