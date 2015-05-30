@@ -77,7 +77,11 @@ public class NestedPanel : MonoBehaviour {
       m_clientArea.gameObject.SetActive(false);
       GetComponent<UnityEngine.UI.Image>().enabled = (false);
 
-      SetSplitRatio(0.5f);
+      float splitRatio = ClientArea.fillTolerance;
+      if (newTabIsFirst != isSplitVertical) {
+         splitRatio = 1-splitRatio;
+      }
+      SetSplitRatio(splitRatio);
    } 
 
    public void Merge(NestedPanel deadChild) {

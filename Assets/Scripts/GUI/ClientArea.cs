@@ -8,6 +8,7 @@ public class ClientArea : DragTarget, IPointerEnterHandler, IPointerExitHandler
    public RectTransform fill;
    public NestedPanel panel;
 
+   public static float fillTolerance = .33f;
    enum FillSide {
       FULL,
       LEFT, 
@@ -46,9 +47,9 @@ public class ClientArea : DragTarget, IPointerEnterHandler, IPointerExitHandler
    }
 
    private FillSide GetFillSide(Vector2 mousePosition) {
-      Rect rect = GetRect();
-      float horizontalTolerance = rect.width * .3f;
-      float verticalTolerance = rect.height * .3f;
+      Rect rect = GetBounds();
+      float horizontalTolerance = rect.width * fillTolerance;
+      float verticalTolerance = rect.height * fillTolerance;
 
       float leftDistance = mousePosition.x;
       float topDistance = -mousePosition.y;
@@ -85,10 +86,10 @@ public class ClientArea : DragTarget, IPointerEnterHandler, IPointerExitHandler
    }
 
    private void SetFillSide(FillSide side) {
-      Rect rect = GetRect();
+      Rect rect = GetBounds();
 
-      float vOffset = -rect.height * .7f;
-      float hOffset = -rect.width * .7f;
+      float vOffset = -rect.height * (1-fillTolerance);
+      float hOffset = -rect.width * (1-fillTolerance);
 
       // Fill the entire area
       fill.offsetMin = Vector2.zero;
@@ -121,7 +122,7 @@ public class ClientArea : DragTarget, IPointerEnterHandler, IPointerExitHandler
       fill.gameObject.SetActive(false);
    }
 
-   private Rect GetRect() {
+   public Rect GetBounds() {
       return GetComponent<RectTransform>().rect;
    }
 
