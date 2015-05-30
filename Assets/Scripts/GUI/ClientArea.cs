@@ -17,10 +17,6 @@ public class ClientArea : DragTarget, IPointerEnterHandler, IPointerExitHandler
       BOTTOM
    };
 
-   void Start() {
-      GetComponent<UnityEngine.UI.Image>().color = GUISchemeManager.clientBackground;
-   }
-
    public override void HandleTabDrop(Tab tab) {
       FillSide side = GetFillSide(GetLocalMousePosition());
 
@@ -32,10 +28,12 @@ public class ClientArea : DragTarget, IPointerEnterHandler, IPointerExitHandler
          bool isFirstChild = (side == FillSide.LEFT || side == FillSide.TOP);
          panel.Split(tab, splitVertical, isFirstChild);
       }
+
+      fill.gameObject.SetActive(false);
    }
 
    public override void OnPointerMoveWhileDragging(Vector2 mousePosition) {
-      fill.gameObject.SetActive(true);
+      fill.gameObject.SetActive(DragManager.IsDragging());
       DragManager.SetDragTarget(this);
       FillSide side = GetFillSide(mousePosition);
       SetFillSide(side);

@@ -13,7 +13,7 @@ public class NestedPanel : MonoBehaviour {
 
    public CaptionBar m_captionBar;
    
-   public UnityEngine.UI.Image m_clientArea;
+   public ClientArea m_clientArea;
 
    public UnityEngine.UI.Button m_resizerButton;
    private static int resizerWidth = 6;
@@ -52,8 +52,8 @@ public class NestedPanel : MonoBehaviour {
       m_captionBar.AddTab(tab);
    }
 
-   public void AddTab(string tabName) {
-      m_captionBar.AddTab(tabName);
+   public void AddTab(Controller controller) {
+      m_captionBar.AddTab(controller);
    }
 
    public void Split(Tab insertedTab, bool isSplitVertical, bool newTabIsFirst) {
@@ -62,12 +62,12 @@ public class NestedPanel : MonoBehaviour {
       m_firstChild = NestedPanel.Instantiate(this);
       m_secondChild = NestedPanel.Instantiate(this);
 
+      Tab selectedTab = m_captionBar.GetSelectedTab();
       NestedPanel protege = (newTabIsFirst) ? m_secondChild : m_firstChild;
       NestedPanel imposter = (newTabIsFirst) ? m_firstChild : m_secondChild;
       foreach (Tab tab in m_captionBar.GetTabs()) {
          protege.AddTab(tab);
       }
-      imposter.AddTab(insertedTab);
 
       //Activate resizer.
       m_resizerButton.gameObject.SetActive(true);
@@ -82,19 +82,24 @@ public class NestedPanel : MonoBehaviour {
          splitRatio = 1-splitRatio;
       }
       SetSplitRatio(splitRatio);
+
+      protege.m_captionBar.SelectTab(selectedTab);
+      imposter.AddTab(insertedTab);
    } 
 
-   public void Merge(NestedPanel deadChild) {
+   public void Merge(NestedPanel deadChild, Controller orphanedController) {
       NestedPanel livingChild = (m_firstChild == deadChild) ? m_secondChild : m_firstChild;
 
       // Update living child's parent pointer.
       livingChild.m_parent = m_parent;
+      orphanedController.transform.SetParent(livingChild.GetClientArea().transform);
 
       if (m_parent) {
          // Update parent's child pointer.
          if (m_parent.m_firstChild == this) {
             m_parent.m_firstChild = livingChild;
-         } else {
+         } 
+         else {
             m_parent.m_secondChild = livingChild;
          }
 
@@ -113,11 +118,15 @@ public class NestedPanel : MonoBehaviour {
          PanelManager.GetRoot().RedrawResizer();
       }
 
+      // In case something goes wrong and no MousePointerEnter event is triggered before dropping
+      // off the tab that triggered this merge, set the living child as the default drag target.
+      DragManager.SetDragTarget(livingChild.GetClientArea());
+
       Destroy(gameObject); // Destroy the middle-man.
    }
 
-   public void OnLastTabRemoved() {
-      m_parent.Merge(this);
+   public void OnLastTabRemoved(Controller orphanedController) {
+      m_parent.Merge(this, orphanedController);
    }
 
    public void OnDragResizer(Vector2 mouseDelta) {
@@ -185,6 +194,10 @@ public class NestedPanel : MonoBehaviour {
 
    public Rect GetRect() {
       return GetComponent<RectTransform>().rect;
+   }
+
+   public ClientArea GetClientArea() {
+      return m_clientArea;
    }
 
    public bool ContainsMouse() {
