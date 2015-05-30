@@ -22,6 +22,7 @@ public class PanelManager : MonoBehaviour {
       GetRoot().AddTab("Camera");
       GetRoot().AddTab("Workspace");
       GetRoot().AddTab("Console");
+      GetRoot().AddTab("Data");
    }
 
    public static NestedPanel GetNestedPanelPrefab() {

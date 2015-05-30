@@ -35,6 +35,7 @@ public class Tab : MonoBehaviour {
 
    public void OnPointerBeginDrag(BaseEventData data) {
       transform.SetParent(PanelManager.GetBottomCanvas().transform); //Send to back
+      DragManager.SetDragTarget(m_captionBar);
       m_captionBar.RemoveTab(this);
       DragManager.StartDrag();
    }
@@ -43,6 +44,23 @@ public class Tab : MonoBehaviour {
       DragTarget hit = DragManager.GetCurrentTarget();
       hit.HandleTabDrop(this);
       DragManager.EndDrag();
+      m_captionBar.SelectTab(this);
+   }
+
+   public void OnPointerClick(BaseEventData data) {
+      m_captionBar.SelectTab(this);
+   }
+
+   public void SetActive(bool active) {
+      var buttonComponent = GetComponent<UnityEngine.UI.Button>();
+      UnityEngine.UI.ColorBlock colors = buttonComponent.colors;
+      colors.normalColor = (active) 
+         ? GUISchemeManager.activeTabNormal
+         : GUISchemeManager.inactiveTabNormal;
+      colors.highlightedColor = (active) 
+         ? GUISchemeManager.activeTabHighlighted
+         : GUISchemeManager.inactiveTabHighlighted;
+      buttonComponent.colors = colors;
    }
 
    public static Vector2 GetTabSize() {

@@ -6,9 +6,7 @@ public class CaptionBar : DragTarget {
    public static float height = DPIScaler.ScaleFrom96(20);
 
    public NestedPanel panel;
-
    private List<Tab> m_tabs = new List<Tab>();
-
 
    public override void HandleTabDrop(Tab tab) {
       AddTab(tab);
@@ -21,11 +19,14 @@ public class CaptionBar : DragTarget {
    public void AddTab(string tabName) {
       Tab tab = Tab.Instantiate(tabName, this);
       AddTab(tab);
+      SelectTab(tab);
    }
 
    public void AddTab(Tab tab) {
       tab.SetCaptionBar(this);
-      m_tabs.Add(tab);
+      if (!m_tabs.Contains(tab)) {
+         m_tabs.Add(tab);
+      }
       Redraw();
    }
 
@@ -35,6 +36,15 @@ public class CaptionBar : DragTarget {
          panel.OnLastTabRemoved();
       } else {
          Redraw();
+      }
+   }
+
+   public void SelectTab(Tab selectedTab) {
+      if (!m_tabs.Contains(selectedTab)) {
+         return;
+      }
+      foreach (Tab tab in m_tabs) {
+         tab.SetActive(tab == selectedTab);
       }
    }
 
