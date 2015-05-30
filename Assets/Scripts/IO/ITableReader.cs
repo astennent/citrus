@@ -1,5 +1,5 @@
 ﻿
-/* This should be extended by classes for reading CSVs and Database Wrappers. */
+/* This should be used by classes for reading CSVs and Database Wrappers. */
 public interface ITableReader {
 
    /**

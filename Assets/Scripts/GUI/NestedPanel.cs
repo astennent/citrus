@@ -10,8 +10,7 @@ public class NestedPanel : MonoBehaviour {
    public NestedPanel m_firstChild; // top or left
    public NestedPanel m_secondChild; // bottom or right
 
-   public UnityEngine.UI.Image m_captionRect;
-   private static int captionRectHeight = 20;
+   public CaptionBar m_captionBar;
    
    public UnityEngine.UI.Image m_clientArea;
 
@@ -19,8 +18,6 @@ public class NestedPanel : MonoBehaviour {
    private static int resizerWidth = 6;
 
    public RectTransform m_tabHolderTransform;
-
-   private List<Tab> m_tabs;
 
    static NestedPanel Instantiate(Transform parent) {
       NestedPanel panel = (NestedPanel)GameObject.Instantiate(PanelManager.GetNestedPanelPrefab(),
@@ -33,13 +30,11 @@ public class NestedPanel : MonoBehaviour {
       transform.anchoredPosition = Vector2.zero;
 
       // Set up tabs
-      panel.m_tabs = new List<Tab>();
-      panel.AddTab("Inspector");
-      panel.AddTab("Camera");
+      panel.m_captionBar.AddTab("Inspector");
+      panel.m_captionBar.AddTab("Camera");
 
       // Set up resizer.
       panel.m_resizerButton.gameObject.SetActive(false);
-
 
       return panel;
    }
@@ -54,22 +49,13 @@ public class NestedPanel : MonoBehaviour {
 
    void Start() {
       // Scale the caption to DPI.
-      float captionHeight = DPIScaler.ScaleFrom96(captionRectHeight);
-      RectTransform captionTransform = this.m_captionRect.GetComponent<RectTransform>();
+      float captionHeight = CaptionBar.height;
+      RectTransform captionTransform = this.m_captionBar.GetComponent<RectTransform>();
       captionTransform.sizeDelta = new Vector2(captionTransform.sizeDelta.x, captionHeight);
       captionTransform.anchoredPosition = new Vector2(0, 0);
 
       RectTransform clientTransform = this.m_clientArea.GetComponent<RectTransform>();
       clientTransform.anchoredPosition = new Vector2(clientTransform.anchoredPosition.x, -captionHeight);
-   }
-
-   void AddTab(string name) {
-      Tab tab = Tab.Instantiate(name, m_tabHolderTransform);
-      RectTransform tabTransform = tab.GetComponent<RectTransform>();
-      float scaledTabWidth = DPIScaler.ScaleFrom96(Tab.width);
-      tabTransform.sizeDelta = new Vector2(scaledTabWidth, 0);
-      tabTransform.anchoredPosition = new Vector2(scaledTabWidth * m_tabs.Count, 0);
-      m_tabs.Add(tab);
    }
 
    void Split(bool vertical) {
@@ -81,7 +67,7 @@ public class NestedPanel : MonoBehaviour {
       m_resizerButton.gameObject.SetActive(true);
 
       // Deactivate self.
-      m_captionRect.gameObject.SetActive(false);
+      m_captionBar.gameObject.SetActive(false);
       m_clientArea.gameObject.SetActive(false);
       GetComponent<UnityEngine.UI.Image>().enabled = (false);
 
@@ -142,6 +128,15 @@ public class NestedPanel : MonoBehaviour {
 
    public Rect GetRect() {
       return GetComponent<RectTransform>().rect;
+   }
+
+   public bool ContainsMouse() {
+      return RectTransformUtility.RectangleContainsScreenPoint(GetComponent<RectTransform>(), 
+            Input.mousePosition, Camera.main);
+   }
+
+   public bool IsLeaf() {
+      return (m_firstChild == null);
    }
 
    public bool IsSplitVertical() {

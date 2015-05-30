@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using System.Collections;
-using UnityEngine.Events;
 using UnityEngine.EventSystems;
 
 public class Resizer : MonoBehaviour {
@@ -17,37 +16,27 @@ public class Resizer : MonoBehaviour {
 
    public void OnPointerEnter(BaseEventData data) {
       m_isHovered = true;
-      Cursor.visible = false;
+      CursorManager.StartDrawingResize(m_panel);
    }
 
    public void OnPointerExit(BaseEventData data) {
       m_isHovered = false;
-      Cursor.visible = !m_isDragging;
-      Debug.Log(Cursor.visible);
+      if (!m_isDragging) {
+         CursorManager.EndDrawingResize();
+      }
    }
 
    public void OnPointerBeginDrag(BaseEventData data) {
       m_isDragging = true;
-      Cursor.visible = false;
+      CursorManager.StartDrawingResize(m_panel);
    }
 
    public void OnPointerEndDrag(BaseEventData data) {
       m_isDragging = false;
-      Cursor.visible = !m_isHovered;
-      Debug.Log(Cursor.visible);
-   }
-
-   void OnGUI() {
-      if (!m_isHovered && !m_isDragging) {
-         return;
+      if (!m_isHovered) {
+         CursorManager.EndDrawingResize();
       }
-
-      Cursor.visible = false;
-      float cursorSize = DPIScaler.ScaleFrom96(25);
-      Texture2D cursorImage = (m_panel.IsSplitVertical()) 
-         ? PanelManager.GetLeftRightArrow() 
-         : PanelManager.GetUpDownArrow();
-      GUI.DrawTexture(new Rect(Input.mousePosition.x - cursorSize/2, 
-            Screen.height - Input.mousePosition.y - cursorSize/2, cursorSize, cursorSize), cursorImage);
    }
+
+
 }
