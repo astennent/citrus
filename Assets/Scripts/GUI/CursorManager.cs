@@ -13,6 +13,10 @@ public class CursorManager : MonoBehaviour {
    static bool resizeVerticalArrow = false;
 
    public static void StartDrawingResize(NestedPanel panel) {
+      if (DragManager.IsDragging()) {
+         return;
+      }
+      
       Cursor.visible = false;
       isDrawingResize = true;
       resizeVerticalArrow = !panel.IsSplitVertical();
@@ -25,11 +29,10 @@ public class CursorManager : MonoBehaviour {
 
    public static void StartDrawingTabDrag() {
       // TODO: Screenshots!
-      Cursor.visible = false;
    }
 
    public static void StopDrawingTabDrag() {
-      Cursor.visible = false;
+
    }
 
    void OnGUI() {

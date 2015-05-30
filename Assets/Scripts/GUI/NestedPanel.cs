@@ -31,22 +31,10 @@ public class NestedPanel : MonoBehaviour {
       transform.sizeDelta = Vector2.zero;
       transform.anchoredPosition = Vector2.zero;
 
-      // Set up tabs
-      panel.m_captionBar.AddTab("Inspector");
-      panel.m_captionBar.AddTab("Camera");
-
       // Set up resizer.
       panel.m_resizerButton.gameObject.SetActive(false);
 
       return panel;
-   }
-
-   // Update is called once per frame
-   void Update () {
-      if (Input.GetButtonDown("Jump") && m_firstChild == null) {
-         bool vertical = (Random.value < 0.5);
-         Split(vertical);
-      }
    }
 
    void Start() {
@@ -60,11 +48,26 @@ public class NestedPanel : MonoBehaviour {
       clientTransform.anchoredPosition = new Vector2(clientTransform.anchoredPosition.x, -captionHeight);
    }
 
-   void Split(bool vertical) {
-      m_splitVertical = vertical;
+   public void AddTab(Tab tab) {
+      m_captionBar.AddTab(tab);
+   }
+
+   public void AddTab(string tabName) {
+      m_captionBar.AddTab(tabName);
+   }
+
+   public void Split(Tab insertedTab, bool isSplitVertical, bool newTabIsFirst) {
+      m_splitVertical = isSplitVertical;
 
       m_firstChild = NestedPanel.Instantiate(this);
       m_secondChild = NestedPanel.Instantiate(this);
+
+      NestedPanel protege = (newTabIsFirst) ? m_secondChild : m_firstChild;
+      NestedPanel imposter = (newTabIsFirst) ? m_firstChild : m_secondChild;
+      foreach (Tab tab in m_captionBar.GetTabs()) {
+         protege.AddTab(tab);
+      }
+      imposter.AddTab(insertedTab);
 
       //Activate resizer.
       m_resizerButton.gameObject.SetActive(true);
@@ -73,7 +76,6 @@ public class NestedPanel : MonoBehaviour {
       m_captionBar.gameObject.SetActive(false);
       m_clientArea.gameObject.SetActive(false);
       GetComponent<UnityEngine.UI.Image>().enabled = (false);
-
 
       SetSplitRatio(0.5f);
    } 
@@ -157,10 +159,10 @@ public class NestedPanel : MonoBehaviour {
          secondTransform.anchoredPosition = new Vector2(rect.xMin + rect.width*m_splitRatio + scaledResizerWidth/2, rect.yMin);
       }
       else {
-         firstTransform.anchoredPosition = new Vector2(rect.xMin, rect.yMin);
-         firstTransform.sizeDelta = new Vector2(0, -rect.height * inverseSplitRatio - scaledResizerWidth);
-         secondTransform.sizeDelta = new Vector2(0, -rect.height * m_splitRatio - scaledResizerWidth);
-         secondTransform.anchoredPosition = new Vector2(rect.xMin, rect.yMin + rect.height*m_splitRatio + scaledResizerWidth);
+         secondTransform.anchoredPosition = new Vector2(rect.xMin, rect.yMin);
+         secondTransform.sizeDelta = new Vector2(0, -rect.height * inverseSplitRatio - scaledResizerWidth);
+         firstTransform.sizeDelta = new Vector2(0, -rect.height * m_splitRatio - scaledResizerWidth);
+         firstTransform.anchoredPosition = new Vector2(rect.xMin, rect.yMin + rect.height*m_splitRatio + scaledResizerWidth);
       }
 
       m_firstChild.Redraw();

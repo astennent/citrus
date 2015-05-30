@@ -14,6 +14,10 @@ public class CaptionBar : DragTarget {
       AddTab(tab);
    }
 
+   public override void OnPointerMoveWhileDragging(Vector2 mousePosition) {
+
+   }
+
    public void AddTab(string tabName) {
       Tab tab = Tab.Instantiate(tabName, this);
       AddTab(tab);

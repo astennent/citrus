@@ -16,6 +16,12 @@ public class PanelManager : MonoBehaviour {
    // Use this for initialization
    void Start () {
       s_instance = this;
+
+      // Set up tabs
+      GetRoot().AddTab("Inspector");
+      GetRoot().AddTab("Camera");
+      GetRoot().AddTab("Workspace");
+      GetRoot().AddTab("Console");
    }
 
    public static NestedPanel GetNestedPanelPrefab() {
