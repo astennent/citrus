@@ -30,7 +30,14 @@ public class CSVReader : ITableReader {
       string[] lines = entireFile.Split('\n');
       m_headers = SplitCsvLine(lines[0]);
 
-      m_contents = new string[lines.Length, m_headers.Length];
+      m_contents = new string[lines.Length-1, m_headers.Length];
+      for (int rowIndex = 1 ; rowIndex < lines.Length ; rowIndex++) {
+         string[] row = SplitCsvLine(lines[rowIndex]);
+         for (int cellIndex = 0 ; cellIndex < m_headers.Length && cellIndex < row.Length; cellIndex++) {
+            m_contents[rowIndex-1, cellIndex] = row[cellIndex];
+         }
+      }
+      Utils.Log(m_contents[0,0]);
    }
 
    private static string ReadFile(string filePath)
@@ -74,7 +81,6 @@ public class CSVReader : ITableReader {
       string[] values = (from Match m in Regex.Matches(line, pattern, 
          RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace | RegexOptions.Multiline)
          select m.Groups[1].Value).ToArray();
-
       return values;        
    }
 }

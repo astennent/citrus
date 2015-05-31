@@ -1,6 +1,6 @@
 using UnityEngine;
 
-class Utils 
+class Utils : MonoBehaviour
 {
    public static Rect GetScreenRect(RectTransform rectTransform) 
    {
@@ -28,4 +28,9 @@ class Utils
          Rect result = new Rect(xMin, yMin, xMax - xMin, yMax - yMin);
          return result;
      }
+
+     public static void Log(object obj) {
+        Debug.Log(obj);
+     }
+
 }

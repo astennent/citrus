@@ -1,15 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class Table : MonoBehaviour {
+public class Table {
 
-	// Use this for initialization
-	void Start () {
+
 	
-	}
-	
-	// Update is called once per frame
-	void Update () {
-	
-	}
 }
