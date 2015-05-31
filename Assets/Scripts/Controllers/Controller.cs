@@ -17,6 +17,9 @@ public abstract class Controller : MonoBehaviour {
       // Clean up any damage you did to the client area.
    }
 
+   public virtual void OnSize() {
+      
+   }
 
    public Rect GetBounds() {
       return m_clientArea.GetBounds();

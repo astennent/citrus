@@ -38,14 +38,14 @@ public class NestedPanel : MonoBehaviour {
    }
 
    void Start() {
-      // Scale the caption to DPI.
-      float captionHeight = Tab.height;
       RectTransform captionTransform = this.m_captionBar.GetComponent<RectTransform>();
-      captionTransform.sizeDelta = new Vector2(captionTransform.sizeDelta.x, captionHeight);
+      captionTransform.sizeDelta = new Vector2(captionTransform.sizeDelta.x, Tab.height);
       captionTransform.anchoredPosition = new Vector2(0, 0);
 
       RectTransform clientTransform = this.m_clientArea.GetComponent<RectTransform>();
-      clientTransform.anchoredPosition = new Vector2(clientTransform.anchoredPosition.x, -captionHeight);
+      clientTransform.anchoredPosition = new Vector2(clientTransform.anchoredPosition.x, -Tab.height);
+
+      Redraw();
    }
 
    public void AddTab(Tab tab) {
@@ -81,10 +81,11 @@ public class NestedPanel : MonoBehaviour {
       if (newTabIsFirst != isSplitVertical) {
          splitRatio = 1-splitRatio;
       }
-      SetSplitRatio(splitRatio);
 
       protege.m_captionBar.SelectTab(selectedTab);
       imposter.AddTab(insertedTab);
+
+      SetSplitRatio(splitRatio);
    } 
 
    public void Merge(NestedPanel deadChild, Controller orphanedController) {
@@ -146,10 +147,19 @@ public class NestedPanel : MonoBehaviour {
     * with their correctly updated sizes. 
     */
    private void Redraw() {
-      if (!m_firstChild || !m_secondChild) {
-         return;
+      if (IsLeaf()) {
+         RedrawLeaf();
       }
+      else {
+         RedrawBranch();
+      }
+   }
 
+   private void RedrawLeaf() {
+      m_captionBar.GetSelectedTab().GetController().OnSize();
+   }
+
+   private void RedrawBranch() {
       RedrawResizer();
       
       float inverseSplitRatio = 1 - m_splitRatio; 
