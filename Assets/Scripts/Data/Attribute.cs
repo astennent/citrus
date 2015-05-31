@@ -1,6 +1,9 @@
 ﻿public class Attribute {
 
-   public string m_name;
-   public Table m_table;
+   public string name {get; set; } // TODO implement set to update gui.
+
+   public Attribute(string attributeName) {
+      name = attributeName;
+   }
 	
 }

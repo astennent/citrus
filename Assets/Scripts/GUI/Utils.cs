@@ -33,4 +33,12 @@ class Utils : MonoBehaviour
         Debug.Log(obj);
      }
 
+     public static void Log(object[] array) {
+        string output = "[";
+        foreach(object obj in array) {
+            output += obj + ", ";
+        }
+        Debug.Log(output + "]");
+     }
+
 }

@@ -39,11 +39,11 @@ public class NestedPanel : MonoBehaviour {
 
    void Start() {
       RectTransform captionTransform = this.m_captionBar.GetComponent<RectTransform>();
-      captionTransform.sizeDelta = new Vector2(captionTransform.sizeDelta.x, Tab.height);
+      captionTransform.sizeDelta = new Vector2(captionTransform.sizeDelta.x, Tab.GetHeight());
       captionTransform.anchoredPosition = new Vector2(0, 0);
 
       RectTransform clientTransform = this.m_clientArea.GetComponent<RectTransform>();
-      clientTransform.anchoredPosition = new Vector2(clientTransform.anchoredPosition.x, -Tab.height);
+      clientTransform.anchoredPosition = new Vector2(clientTransform.anchoredPosition.x, -Tab.GetHeight());
 
       Redraw();
    }

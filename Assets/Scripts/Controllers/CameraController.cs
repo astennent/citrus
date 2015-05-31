@@ -33,7 +33,6 @@ public class CameraController : Controller {
 
    public override void OnSize() {
       RepositionCameraViewport();
-      Debug.Log("Sizing...");
    }
 
    private void RepositionCameraViewport() {

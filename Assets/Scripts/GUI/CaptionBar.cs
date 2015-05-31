@@ -25,7 +25,7 @@ public class CaptionBar : DragTarget {
 
    // Returns 0 if it should be at the far left, m_tabs.Length if far right.
    private int GetTabInsertionIndex(Vector2 mousePosition) {
-      int index = (int)(mousePosition.x / Tab.width);
+      int index = (int)(mousePosition.x / Tab.GetWidth());
       return Mathf.Clamp(index, 0, m_tabs.Count);
    }
 

@@ -4,8 +4,12 @@ using UnityEngine.EventSystems;
 
 public class Tab : MonoBehaviour {
 
-   public static float width = DPIScaler.ScaleFrom96(70f);
-   public static float height = DPIScaler.ScaleFrom96(20f);
+   public static float GetWidth() {
+      return DPIScaler.ScaleFrom96(70f);
+   }
+   public static float GetHeight() {
+      return DPIScaler.ScaleFrom96(20f);
+   }
 
    private Controller m_controller;
    private CaptionBar m_captionBar;
@@ -77,17 +81,17 @@ public class Tab : MonoBehaviour {
    }
 
    public static Vector2 GetTabSize() {
-      return new Vector2(width, height);
+      return new Vector2(GetWidth(), GetHeight());
    }
 
    public void SetRenderIndex(int i) {
       m_renderIndex = i;
       RectTransform rectTransform = GetComponent<RectTransform>();
-      rectTransform.sizeDelta = new Vector2(width, 0);
+      rectTransform.sizeDelta = new Vector2(GetWidth(), 0);
    }
 
    public void FinishAnimation() {
-      GetComponent<RectTransform>().anchoredPosition = new Vector2(width * m_renderIndex, 0);
+      GetComponent<RectTransform>().anchoredPosition = new Vector2(GetWidth() * m_renderIndex, 0);
    }
 
    private void StartControllerDisplay() {
@@ -97,7 +101,7 @@ public class Tab : MonoBehaviour {
    void Update() {
       RectTransform rectTransform = GetComponent<RectTransform>();
       float currentPosition = rectTransform.anchoredPosition.x;
-      float desiredPosition = width * m_renderIndex;
+      float desiredPosition = GetWidth() * m_renderIndex;
       float transitionPosition = Mathf.Lerp(currentPosition, desiredPosition, .5f);
       rectTransform.anchoredPosition = new Vector2(transitionPosition, 0);
    }
