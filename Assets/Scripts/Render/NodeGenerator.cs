@@ -7,7 +7,7 @@ class NodeGenerator : MonoBehaviour {
    public Node nodePrefab;
    private static NodeGenerator s_instance;
    private static Queue<Row> rowQueue = new Queue<Row>();
-   private static int nodesPerFrame = 20; // The number of nodes to process per frame.
+   private static int nodesPerFrame = 100; // The number of nodes to process per frame.
 
    void Start() {
       s_instance = this;

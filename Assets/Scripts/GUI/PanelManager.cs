@@ -20,11 +20,12 @@ public class PanelManager : MonoBehaviour {
       s_instance = this;
 
       // Set up tabs
+      GetRoot().AddTab(DummyController.Instantiate());
+      GetRoot().AddTab(DummyController.Instantiate());
+      GetRoot().AddTab(DummyController.Instantiate());
+      GetRoot().AddTab(DummyController.Instantiate());
       GetRoot().AddTab(CameraController.Instantiate());
-      GetRoot().AddTab(DummyController.Instantiate());
-      GetRoot().AddTab(DummyController.Instantiate());
-      GetRoot().AddTab(DummyController.Instantiate());
-      GetRoot().AddTab(DummyController.Instantiate());
+      GetRoot().AddTab(CameraController.Instantiate());
    }
 
    public static NestedPanel GetNestedPanelPrefab() {
