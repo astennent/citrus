@@ -6,13 +6,16 @@ using System.Threading;
 public class Table {
    private int consumedRowIndex = -1;
    private Row[] m_rows;
+   private Thread m_loadingThread;
+   private Thread m_unloadingThread;
 
    private int parsedLineIndex = -1; // linesQueue has been parsed up to and including this index.
    private string[] linesQueue;
    private int linesPerFrame = 1;
-
    private Thread m_parsingThread;
-   private Thread m_loadingThread;
+
+
+   private object threadStartAndStopper = new object(); //Used to lock around starting or ending threads.
 
    public Attribute[] attributes {get; private set; }
 
@@ -30,10 +33,25 @@ public class Table {
       } private set {
          //TODO: Check if Loaded....this would remove or add a node.
          m_usesHeaders = value;
+         if (state == TableState.PARSING) {
+            return;
+         }
+
          for (int i = 0 ; i < attributes.Length ; i++) {
             Attribute attribute = attributes[i];
             attribute.name = (m_usesHeaders) ? m_rows[0][i] : ("Col" + i);
          }
+      }
+   }
+
+   private bool m_isLinking = false;
+   public bool isLinking {
+      get {
+         return m_isLinking;
+      }
+      set {
+         Unload();
+         m_isLinking = value;
       }
    }
 
@@ -43,6 +61,8 @@ public class Table {
       parsedLineIndex = -1;
       state = TableState.PARSING;
       m_parsingThread = new System.Threading.Thread(ConsumeLines);
+      m_loadingThread = new System.Threading.Thread(GenerateNodes);
+      m_unloadingThread = new System.Threading.Thread(DestroyNodes);
       m_parsingThread.Start();
    }
 
@@ -72,47 +92,79 @@ public class Table {
          string[] rowContents = contents[rowIndex];
          m_rows[rowIndex] = new Row(this, rowContents);
       }
-      parsedLineIndex = m_rows.Length - 1; // They started out parsed!
-
+      parsedLineIndex = m_rows.Length - 1;
       OnFinishParse();
    }
 
    // Called after m_rows has been set or built by the constructor or coroutine.
    private void OnFinishParse() {
       state = TableState.UNLOADED;
-      m_usesHeaders = true;
-
       int numColumns = m_rows[0].Length();
       attributes = new Attribute[numColumns];
       for (int i = 0 ; i < numColumns ; i++) {
-         attributes[i] = new Attribute(m_rows[0][i]);
+         string attributeName = (m_usesHeaders) ? m_rows[0][i] : "Col"+i;
+         attributes[i] = new Attribute(attributeName);
       }
       
    }
 
    public void Load() {
-      m_loadingThread = new System.Threading.Thread(ConsumeRows);
-      m_loadingThread.Start();
+      lock (threadStartAndStopper) {
+         JoinThread(m_unloadingThread);
+         JoinThread(m_loadingThread);
+         m_loadingThread.Start();
+      }
    }
 
-   void ConsumeRows() {
+   public void Unload() {
+      // Ensure that you are not Loading.
+      lock (threadStartAndStopper) {
+         JoinThread(m_loadingThread);
+         JoinThread(m_unloadingThread);
+         m_unloadingThread.Start();
+      }
+   }
+
+   private void GenerateNodes() {
       while(true) {
          lock(linesQueue) {
             while (consumedRowIndex < parsedLineIndex) {
                consumedRowIndex++;
-               NodeGenerator.Generate(m_rows[consumedRowIndex]);
+               NodeManager.Load(m_rows[consumedRowIndex]);
             }
             if (consumedRowIndex == m_rows.Length-1) {
                OnFinishLoad();
                return; // Ends the thread.
             }
          }
-      }        
+      }  
+   }
+
+   private void DestroyNodes() {
+      lock(linesQueue) {
+         NodeManager.Unload(m_rows);
+         consumedRowIndex = -1;
+         OnFinishUnload();
+      }
+   }
+
+   private void JoinThread(Thread thread) {
+      try {
+         thread.Join();
+      } catch (ThreadStateException) {
+         // This can fail if the thread hasn't been started yet, but that just means it's finished.
+      }
    }
 
    private void OnFinishLoad() {
       state = TableState.LOADED;
    }
 
+   private void OnFinishUnload() {
+      // state will be parsing if we were still parsing, and we want to leave it that way.
+      if (state != TableState.PARSING) {
+         state = TableState.UNLOADED;
+      }
+   }
 
 }

@@ -41,4 +41,8 @@ class Utils : MonoBehaviour
         Debug.Log(output + "]");
      }
 
+     public static void Assert(string errMessage) {
+        Debug.LogError(errMessage);
+     }
+
 }
