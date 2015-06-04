@@ -11,10 +11,8 @@ class ProjectManager : MonoBehaviour {
       Table edgesList = project.OpenFile(filename2);
       fullGroupAttrs.Load();
 
-      // edgesList.isLinking = true;
-      // edgesList.Load();
-      fullGroupAttrs.Unload();
-
+      edgesList.isLinking = true;
+      edgesList.Load();
    }
 
    public Project OpenProject(string filename) {

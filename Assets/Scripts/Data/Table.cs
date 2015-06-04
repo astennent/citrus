@@ -21,8 +21,8 @@ public class Table {
 
    public enum TableState {
       PARSING, // This will be set if the table is constructed using a string[]
-      UNLOADED, // Indicates that all lines are parsed, but nodes are either unloaded or loading
-      LOADED, // Indicates nodes are all loaded.
+      UNLOADED, // Indicates that all lines are parsed, but graphObjects are either unloaded or loading
+      LOADED, // Indicates graphObjects are all loaded.
    }
    public TableState state {get; private set; }
 
@@ -31,7 +31,7 @@ public class Table {
       get {
          return m_usesHeaders;
       } private set {
-         //TODO: Check if Loaded....this would remove or add a node.
+         //TODO: Check if Loaded....this would remove or add a graphObject.
          m_usesHeaders = value;
          if (state == TableState.PARSING) {
             return;
@@ -44,16 +44,12 @@ public class Table {
       }
    }
 
-   private bool m_isLinking = false;
-   public bool isLinking {
-      get {
-         return m_isLinking;
-      }
-      set {
-         Unload();
-         m_isLinking = value;
-      }
-   }
+   /**
+    * isLinking is checked by GraphObjects at every frame. If it is false, they will render as a graphObject
+    * and update their position. If it is true, they will render as an edge and update that edge to
+    * track affiliated graphObjects.
+    */
+   public bool isLinking = false;
 
    public Table(string[] lines) {
       m_rows = new Row[lines.Length];
@@ -61,8 +57,8 @@ public class Table {
       parsedLineIndex = -1;
       state = TableState.PARSING;
       m_parsingThread = new System.Threading.Thread(ConsumeLines);
-      m_loadingThread = new System.Threading.Thread(GenerateNodes);
-      m_unloadingThread = new System.Threading.Thread(DestroyNodes);
+      m_loadingThread = new System.Threading.Thread(GenerateGraphObjects);
+      m_unloadingThread = new System.Threading.Thread(DestroyGraphObjects);
       m_parsingThread.Start();
    }
 
@@ -125,12 +121,12 @@ public class Table {
       }
    }
 
-   private void GenerateNodes() {
+   private void GenerateGraphObjects() {
       while(true) {
          lock(linesQueue) {
             while (consumedRowIndex < parsedLineIndex) {
                consumedRowIndex++;
-               NodeManager.Load(m_rows[consumedRowIndex]);
+               GraphObjectManager.Load(m_rows[consumedRowIndex]);
             }
             if (consumedRowIndex == m_rows.Length-1) {
                OnFinishLoad();
@@ -140,9 +136,9 @@ public class Table {
       }  
    }
 
-   private void DestroyNodes() {
+   private void DestroyGraphObjects() {
       lock(linesQueue) {
-         NodeManager.Unload(m_rows);
+         GraphObjectManager.Unload(m_rows);
          consumedRowIndex = -1;
          OnFinishUnload();
       }
