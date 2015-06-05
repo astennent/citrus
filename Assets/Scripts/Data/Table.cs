@@ -7,7 +7,6 @@ public class Table {
    private int consumedRowIndex = -1;
    private Row[] m_rows;
    private Thread m_loadingThread;
-   private Thread m_unloadingThread;
 
    private int parsedLineIndex = -1; // linesQueue has been parsed up to and including this index.
    private string[] linesQueue;
@@ -58,7 +57,6 @@ public class Table {
       state = TableState.PARSING;
       m_parsingThread = new System.Threading.Thread(ConsumeLines);
       m_loadingThread = new System.Threading.Thread(GenerateNodes);
-      m_unloadingThread = new System.Threading.Thread(DestroyNodes);
       m_parsingThread.Start();
    }
 
@@ -106,18 +104,23 @@ public class Table {
 
    public void Load() {
       lock (threadStartAndStopper) {
-         JoinThread(m_unloadingThread);
          JoinThread(m_loadingThread);
          m_loadingThread.Start();
       }
    }
 
    public void Unload() {
+      // state will be parsing if we were still parsing, and we want to leave it that way.
+      if (state != TableState.PARSING) {
+         state = TableState.UNLOADED;
+      }
       // Ensure that you are not Loading.
       lock (threadStartAndStopper) {
          JoinThread(m_loadingThread);
-         JoinThread(m_unloadingThread);
-         m_unloadingThread.Start();
+         lock(linesQueue) {
+            NodeManager.Unload(m_rows);
+            consumedRowIndex = -1;
+         }
       }
    }
 
@@ -136,14 +139,6 @@ public class Table {
       }  
    }
 
-   private void DestroyNodes() {
-      lock(linesQueue) {
-         NodeManager.Unload(m_rows);
-         consumedRowIndex = -1;
-         OnFinishUnload();
-      }
-   }
-
    private void JoinThread(Thread thread) {
       try {
          thread.Join();
@@ -154,13 +149,6 @@ public class Table {
 
    private void OnFinishLoad() {
       state = TableState.LOADED;
-   }
-
-   private void OnFinishUnload() {
-      // state will be parsing if we were still parsing, and we want to leave it that way.
-      if (state != TableState.PARSING) {
-         state = TableState.UNLOADED;
-      }
    }
 
 }
