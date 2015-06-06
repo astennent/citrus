@@ -8,7 +8,6 @@ class NodeManager : MonoBehaviour {
    private static NodeManager s_instance;
    private static Queue<Row> toLoad = new Queue<Row>();
    private static Queue<Row> toUnload = new Queue<Row>();
-   private static int nodesPerFrame = 100; // The number of graphobjects to process per frame.
 
    private static object loaderLock = new object();
 
@@ -47,13 +46,11 @@ class NodeManager : MonoBehaviour {
    IEnumerator LoadNodes()
    {
       while(Application.isPlaying) {
-         lock(toLoad) {
-            int count = 0;
-            while (toLoad.Count > 0 && count < nodesPerFrame) {
+         lock(loaderLock) {
+            while (toLoad.Count > 0) {
                Row row = toLoad.Dequeue();
                Node node = Node.Instantiate(s_instance.nodePrefab, row);
                AddNodeToMap(row, node);
-               count++;
             }
          }
          yield return 0;
@@ -63,14 +60,21 @@ class NodeManager : MonoBehaviour {
    IEnumerator UnloadNodes()
    {
       while(Application.isPlaying) {
-         lock(toUnload) {
-            while (toLoad.Count > 0) {
-               Row row = toLoad.Dequeue();
+         lock(loaderLock) {
+            while (toUnload.Count > 0) {
+               Row row = toUnload.Dequeue();
                RemoveFromMap(row);
             }
          }
          yield return 0;
       }  
+   }
+
+   public static Node GetNode(Row row) {
+      if (row == null || !nodeMap.ContainsKey(row.table) || !nodeMap[row.table].ContainsKey(row)) {
+         return null;
+      }
+      return nodeMap[row.table][row];
    }
 
    private static void AddNodeToMap(Row row, Node node)

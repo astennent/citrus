@@ -13,7 +13,6 @@ public class Table {
    private int linesPerFrame = 1;
    private Thread m_parsingThread;
 
-
    private object threadStartAndStopper = new object(); //Used to lock around starting or ending threads.
 
    public Attribute[] attributes {get; private set; }
@@ -24,6 +23,16 @@ public class Table {
       LOADED, // Indicates nodes are all loaded.
    }
    public TableState state {get; private set; }
+
+   public List<ForeignKey> foreignKeys {get; private set;}
+   public void AddForeignKey(int sourceIndex, Table table, int columnIndex) {
+      foreignKeys.Add(new ForeignKey(sourceIndex, table, columnIndex));
+      // TODO: Menu updates
+   }
+   public void RemoveForeignKey(ForeignKey key) {
+      foreignKeys.Remove(key);
+      //TODO: Menu updates
+   }
 
    private bool m_usesHeaders = false;
    public bool usesHeaders { 
@@ -52,12 +61,23 @@ public class Table {
 
    public Table(string[] lines) {
       m_rows = new Row[lines.Length];
+      foreignKeys = new List<ForeignKey>();
       linesQueue = lines;
       parsedLineIndex = -1;
       state = TableState.PARSING;
       m_parsingThread = new System.Threading.Thread(ConsumeLines);
       m_loadingThread = new System.Threading.Thread(GenerateNodes);
       m_parsingThread.Start();
+   }
+
+   public Row Get(int columnIndex, string targetValue) {
+      //TODO: Table Indexing (cache this, it's expensive and doesn't need to be)
+      foreach (Row row in m_rows) {
+         if (row != null && row[columnIndex] == targetValue) {
+            return row;
+         }
+      }
+      return null;
    }
 
    void ConsumeLines() {
@@ -72,6 +92,7 @@ public class Table {
             }
 
             if (parsedLineIndex == linesQueue.Length - 1) {
+               parsedLineIndex++;
                OnFinishParse();
                return; // Ends the coroutine.
             }
@@ -129,7 +150,8 @@ public class Table {
          lock(linesQueue) {
             while (consumedRowIndex < parsedLineIndex) {
                consumedRowIndex++;
-               NodeManager.Load(m_rows[consumedRowIndex]);
+               Row row = m_rows[consumedRowIndex];
+               NodeManager.Load(row);
             }
             if (consumedRowIndex == m_rows.Length-1) {
                OnFinishLoad();

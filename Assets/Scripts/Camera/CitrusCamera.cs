@@ -2,7 +2,6 @@ using UnityEngine;
 
 public class CitrusCamera : MonoBehaviour 
 {
-
    float x;
    float y;
    float shiftVelocity;
@@ -37,7 +36,6 @@ public class CitrusCamera : MonoBehaviour
       transform.position += transform.forward * forward;
       transform.position += transform.right * strafe;
       transform.position += transform.up * strafeVertical;
-
    }
 
 
