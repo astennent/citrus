@@ -41,6 +41,8 @@ public class NodeMover : MonoBehaviour {
                Thread.Sleep(1);
             }
 
+            var nodePositions = new Dictionary<Node, Vector3>();
+
             foreach (Node node in m_workingNodes) {
                 List<Connection> connections = node.GetConnections();
       
@@ -53,15 +55,22 @@ public class NodeMover : MonoBehaviour {
                      Node node1 = connections[i].node; 
                      for (int j = 0 ; j < connections.Count ; j++) {
                         if (i != j) {
-                           Vector3 position1 = node1.GetPosition();
                            Node node2 = connections[j].node;
-                           Vector3 position2 = node2.GetPosition();
+
+                           Vector3 position1 = (nodePositions.ContainsKey(node1))
+                              ? nodePositions[node1]
+                              : node1.GetPosition();
+
+                           Vector3 position2 = (nodePositions.ContainsKey(node2))
+                              ? nodePositions[node2]
+                              : node2.GetPosition();
 
                            Vector3 center = (position1 + position2)/2f;
                            Vector3 desiredPosition1 = center + (center-position1).normalized * desiredDistance/2f;
-                           node1.SetPosition(desiredPosition1);
                            Vector3 desiredPosition2 = center + (center-position2).normalized * desiredDistance/2f;
-                           node2.SetPosition(desiredPosition2);
+
+                           nodePositions[node1] = desiredPosition1;
+                           nodePositions[node2] = desiredPosition2;
                         }
                      }
                   }
@@ -70,6 +79,13 @@ public class NodeMover : MonoBehaviour {
                   // TODO: Implement movement for non-linking tables.
                }
             }
+
+            foreach (KeyValuePair<Node, Vector3> kvp in nodePositions) {
+               kvp.Key.SetPosition(kvp.Value);
+            }
+
+
+
          }
       }
    }

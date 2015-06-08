@@ -74,6 +74,10 @@ public class Table {
    }
 
    public Row Get(int columnIndex, string targetValue, bool addIndex) {
+      if (state == TableState.PARSING) {
+         return null;
+      }
+
       if (addIndex) {
          AddIndex(columnIndex);
       }
@@ -95,7 +99,7 @@ public class Table {
    // This is called by Get because indexing is a somewhat expensive (though one-time) cost that we
    // want to avoid for the session if it's not used.
    private void AddIndex(int columnIndex) {
-      if (state == TableState.PARSING || m_cachedQueries.ContainsKey(columnIndex)) {
+      if (m_cachedQueries.ContainsKey(columnIndex)) {
          return;
       }
 
