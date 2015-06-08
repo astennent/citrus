@@ -17,6 +17,8 @@ public class Node : MonoBehaviour {
    private LineRenderer lineRenderer;
    private Vector3 m_desiredPosition;
 
+   private Dictionary<ForeignKey, Connection> connectionCache = new Dictionary<ForeignKey, Connection>();
+
    private static float NODE_SPEED = 1f;
 
    public static Node Instantiate(Node prefab, Row _row)
@@ -58,16 +60,24 @@ public class Node : MonoBehaviour {
       transform.position = Vector3.Lerp(transform.position, m_desiredPosition, NODE_SPEED * Time.deltaTime);
    }
 
-
    public List<Connection> GetConnections()
    {
       var connections = new List<Connection>();
       foreach (ForeignKey foreignKey in row.table.foreignKeys) {
-         string sourceValue = row[foreignKey.sourceColumn];
-         Row targetRow = foreignKey.targetTable.Get(foreignKey.targetColumn, sourceValue, true);
-         Node targetNode = NodeManager.GetNode(targetRow);
-         if (targetNode != null) {
-            connections.Add(new Connection(foreignKey, targetNode));
+
+         if (connectionCache.ContainsKey(foreignKey)) {
+            connections.Add(connectionCache[foreignKey]);
+         } 
+         else {
+
+            string sourceValue = row[foreignKey.sourceColumn];
+            Row targetRow = foreignKey.targetTable.Get(foreignKey.targetColumn, sourceValue, true);
+            Node targetNode = NodeManager.GetNode(targetRow);
+            if (targetNode != null) {
+               Connection c = new Connection(foreignKey, targetNode);
+               connections.Add(c);
+               connectionCache[foreignKey] = c;
+            }
          }
       }
       return connections;
