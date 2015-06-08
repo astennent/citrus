@@ -1,11 +1,23 @@
 using UnityEngine;
 using System.Collections.Generic;
 
+public class Connection {
+   public ForeignKey foreignKey;
+   public Node node;
+   public Connection(ForeignKey foreignKey, Node node) {
+      this.foreignKey = foreignKey;
+      this.node = node;
+   }
+}
+
 public class Node : MonoBehaviour {
 
    public Row row {get; private set;}
 
    private LineRenderer lineRenderer;
+   private Vector3 m_desiredPosition;
+
+   private static float NODE_SPEED = 1f;
 
    public static Node Instantiate(Node prefab, Row _row)
    {
@@ -13,45 +25,64 @@ public class Node : MonoBehaviour {
       node.row = _row;
       node.JumpToRandomPosition();
       node.lineRenderer = node.GetComponent<LineRenderer>();
+      NodeMover.AddNode(node);
       return node;
    }
 
    public void JumpToRandomPosition()
    {
       transform.position = new Vector3(Random.value, Random.value, Random.value) * 2000 - Vector3.one*1000;
+      m_desiredPosition = transform.position;
    }
+
+   public bool isLinking()
+   {
+      return row.table.isLinking;
+   }
+
+   public void SetPosition(Vector3 position)
+   {
+      m_desiredPosition = position;
+   }
+
+   public Vector3 GetPosition()
+   {
+      return m_desiredPosition;
+   }
+
 
    public void Update()
    {
-      bool shouldRender = !(row.table.isLinking);
       Renderer renderer = GetComponent<Renderer>();
-      if (renderer.enabled && !shouldRender) {
-         renderer.enabled = false;
-      } 
-      else if (!renderer.enabled && shouldRender) {
-         renderer.enabled = true;
-      }
+      renderer.enabled = !isLinking();
+      transform.position = Vector3.Lerp(transform.position, m_desiredPosition, NODE_SPEED * Time.deltaTime);
    }
 
-   public void LateUpdate() 
+
+   public List<Connection> GetConnections()
    {
-      var table = row.table;
-      var connectedNodes = new List<Node>();
-      foreach (ForeignKey foreignKey in table.foreignKeys) {
+      var connections = new List<Connection>();
+      foreach (ForeignKey foreignKey in row.table.foreignKeys) {
          string sourceValue = row[foreignKey.sourceColumn];
          Row targetRow = foreignKey.targetTable.Get(foreignKey.targetColumn, sourceValue);
          Node targetNode = NodeManager.GetNode(targetRow);
          if (targetNode != null) {
-            connectedNodes.Add(targetNode);
+            connections.Add(new Connection(foreignKey, targetNode));
          }
       }
+      return connections;
+   }
 
-      if (table.isLinking) {
-         lineRenderer.enabled = (connectedNodes.Count >= 2);
+   public void LateUpdate() 
+   {
+      List<Connection> connections = GetConnections();
+
+      if (isLinking()) {
+         lineRenderer.enabled = (connections.Count >= 2);
 
          // TODO: Make wheel spokes if this is larger than 2.
-         for (int positionIndex = 0 ; positionIndex < connectedNodes.Count ; positionIndex++) {
-            Node targetNode = connectedNodes[positionIndex];
+         for (int positionIndex = 0 ; positionIndex < connections.Count ; positionIndex++) {
+            Node targetNode = connections[positionIndex].node;
             lineRenderer.SetPosition(positionIndex, targetNode.transform.position);
          }
       }

@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 
 class NodeManager : MonoBehaviour {
 
@@ -11,14 +12,16 @@ class NodeManager : MonoBehaviour {
 
    private static object loaderLock = new object();
 
-   private static Dictionary<Table, Dictionary<Row, Node> > nodeMap =
-         new Dictionary<Table, Dictionary<Row, Node> >();
+   public static Dictionary<Table, Dictionary<Row, Node> > nodeMap {get; private set;}
+
+   private Thread m_movementThread;
 
    void Start()
    {
       s_instance = this;
       StartCoroutine("LoadNodes");
       StartCoroutine("UnloadNodes");
+      nodeMap = new Dictionary<Table, Dictionary<Row, Node> >();
    }
 
    public static Node GetNodePrefab()
@@ -99,7 +102,5 @@ class NodeManager : MonoBehaviour {
       GameObject.Destroy(node.gameObject);
       nodeMap[table].Remove(row);
    }
-
-
 
 }
