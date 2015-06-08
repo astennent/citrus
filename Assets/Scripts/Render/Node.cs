@@ -64,7 +64,7 @@ public class Node : MonoBehaviour {
       var connections = new List<Connection>();
       foreach (ForeignKey foreignKey in row.table.foreignKeys) {
          string sourceValue = row[foreignKey.sourceColumn];
-         Row targetRow = foreignKey.targetTable.Get(foreignKey.targetColumn, sourceValue);
+         Row targetRow = foreignKey.targetTable.Get(foreignKey.targetColumn, sourceValue, true);
          Node targetNode = NodeManager.GetNode(targetRow);
          if (targetNode != null) {
             connections.Add(new Connection(foreignKey, targetNode));

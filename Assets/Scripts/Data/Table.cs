@@ -15,6 +15,8 @@ public class Table {
 
    private object threadStartAndStopper = new object(); //Used to lock around starting or ending threads.
 
+   private Dictionary<int, Dictionary<string, Row> >m_cachedQueries;
+
    public Attribute[] attributes {get; private set; }
 
    public enum TableState {
@@ -62,6 +64,7 @@ public class Table {
    public Table(string[] lines) {
       m_rows = new Row[lines.Length];
       foreignKeys = new List<ForeignKey>();
+      m_cachedQueries = new Dictionary<int, Dictionary<string, Row>>();
       linesQueue = lines;
       parsedLineIndex = -1;
       state = TableState.PARSING;
@@ -70,14 +73,38 @@ public class Table {
       m_parsingThread.Start();
    }
 
-   public Row Get(int columnIndex, string targetValue) {
-      //TODO: Table Indexing (cache this, it's expensive and doesn't need to be)
+   public Row Get(int columnIndex, string targetValue, bool addIndex) {
+      if (addIndex) {
+         AddIndex(columnIndex);
+      }
+
+      if (m_cachedQueries.ContainsKey(columnIndex)) {
+         Row cachedRow = null;
+         m_cachedQueries[columnIndex].TryGetValue(targetValue, out cachedRow);
+         return cachedRow;
+      }
+
       foreach (Row row in m_rows) {
          if (row != null && row[columnIndex] == targetValue) {
             return row;
          }
       }
       return null;
+   }
+
+   // This is called by Get because indexing is a somewhat expensive (though one-time) cost that we
+   // want to avoid for the session if it's not used.
+   private void AddIndex(int columnIndex) {
+      if (state == TableState.PARSING || m_cachedQueries.ContainsKey(columnIndex)) {
+         return;
+      }
+
+      var columnCache = new Dictionary<string, Row>();
+      foreach (Row row in m_rows) {
+         columnCache[row[columnIndex]] = row;
+      }
+
+      m_cachedQueries[columnIndex] = columnCache;
    }
 
    void ConsumeLines() {
