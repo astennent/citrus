@@ -9,9 +9,15 @@ public class NodeMover : MonoBehaviour {
 
    private Thread m_movingThread;
 
+   private static bool m_isAlive = true;
+
    void Start() {
       m_movingThread = new System.Threading.Thread(MoveNodes);
       m_movingThread.Start();
+   }
+
+   void OnDestroy() {
+      m_isAlive = false; 
    }
 
    public static void AddNode(Node node) {
@@ -21,7 +27,7 @@ public class NodeMover : MonoBehaviour {
    }
    
    public static void MoveNodes() {
-      while (true) {
+      while (m_isAlive) {
          lock(m_workingNodes) {
 
 
