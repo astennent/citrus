@@ -28,6 +28,9 @@ public class Node : MonoBehaviour {
       node.JumpToRandomPosition();
       node.lineRenderer = node.GetComponent<LineRenderer>();
       NodeMover.AddNode(node);
+      if (!node.isLinking()) {
+         node.SetColor(ColorManager.GenColor(ColorManager.Theme.BRIGHT));
+      }
       return node;
    }
 
@@ -35,6 +38,10 @@ public class Node : MonoBehaviour {
    {
       transform.position = new Vector3(Random.value, Random.value, Random.value) * 2000 - Vector3.one*1000;
       m_desiredPosition = transform.position;
+   }
+
+   public void SetColor(Color color) {
+      GetComponent<Renderer>().material.color = color;
    }
 
    public bool isLinking()
