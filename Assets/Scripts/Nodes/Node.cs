@@ -12,7 +12,32 @@ public class Connection {
 
 public class Node : MonoBehaviour {
 
+   public GameObject halo;
    public Row row {get; private set;}
+
+   private bool _isSelected;
+   public bool isSelected {
+      get { return _isSelected; }
+      set {
+         _isSelected = value;
+         halo.SetActive(value);
+         if (value) {
+            halo.GetComponent<ParticleSystem>().startColor = color;
+         }
+      }
+   }
+
+   private Color _color;
+   public Color color {
+      get { return _color; }
+      set {
+         _color = value;
+         GetComponent<Renderer>().material.color = value;
+         if (isSelected) {
+            halo.GetComponent<ParticleSystem>().startColor = value;
+         }
+      }
+   }
 
    private LineRenderer lineRenderer;
    private Vector3 m_desiredPosition;
@@ -20,6 +45,7 @@ public class Node : MonoBehaviour {
    private Dictionary<ForeignKey, Connection> connectionCache = new Dictionary<ForeignKey, Connection>();
 
    private static float NODE_SPEED = 1f;
+
 
    public static Node Instantiate(Node prefab, Row _row)
    {
@@ -29,7 +55,7 @@ public class Node : MonoBehaviour {
       node.lineRenderer = node.GetComponent<LineRenderer>();
       NodeMover.AddNode(node);
       if (!node.isLinking()) {
-         node.SetColor(ColorManager.GenColor(ColorManager.Theme.BRIGHT));
+         node.color = ColorManager.GenColor(ColorManager.Theme.BRIGHT);
       }
       return node;
    }
@@ -38,10 +64,6 @@ public class Node : MonoBehaviour {
    {
       transform.position = new Vector3(Random.value, Random.value, Random.value) * 2000 - Vector3.one*1000;
       m_desiredPosition = transform.position;
-   }
-
-   public void SetColor(Color color) {
-      GetComponent<Renderer>().material.color = color;
    }
 
    public bool isLinking()
@@ -64,7 +86,14 @@ public class Node : MonoBehaviour {
    {
       Renderer renderer = GetComponent<Renderer>();
       renderer.enabled = !isLinking();
-      transform.position = Vector3.Lerp(transform.position, m_desiredPosition, NODE_SPEED * Time.deltaTime);
+
+      float distanceToTarget = Vector3.Distance(transform.position, m_desiredPosition);
+      if (distanceToTarget > .2) {
+         transform.position = Vector3.Lerp(transform.position, m_desiredPosition, NODE_SPEED * Time.deltaTime);
+      }
+      else if (distanceToTarget > 0) {
+         transform.position = m_desiredPosition;
+      }
    }
 
    public List<Connection> GetConnections()
@@ -92,9 +121,9 @@ public class Node : MonoBehaviour {
 
    public void LateUpdate() 
    {
-      List<Connection> connections = GetConnections();
 
       if (isLinking()) {
+         List<Connection> connections = GetConnections();
          lineRenderer.enabled = (connections.Count >= 2);
 
          // TODO: Make wheel spokes if this is larger than 2.
@@ -107,10 +136,6 @@ public class Node : MonoBehaviour {
          //TODO.
       }
 
-   }
-
-   public void OnClick() {
-      GetComponent<Renderer>().material.color = Color.white;
    }
 
 }
