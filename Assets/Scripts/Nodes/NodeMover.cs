@@ -11,83 +11,97 @@ public class NodeMover : MonoBehaviour {
 
    private static bool m_isAlive = true;
 
-   void Start() {
-      m_movingThread = new System.Threading.Thread(MoveNodes);
+   void Start()
+   {
+      m_movingThread = new System.Threading.Thread(MoveNodeLoop);
       m_movingThread.Start();
    }
 
-   void OnDestroy() {
+   void OnDestroy()
+   {
       m_isAlive = false; 
    }
 
-   public static void AddNode(Node node) {
+   public static void AddNode(Node node)
+   {
       lock (m_nodesToAdd) {
          m_nodesToAdd.Enqueue(node);
       }
    }
    
-   public static void MoveNodes() {
+   private static void MoveNodeLoop() 
+   {
       while (m_isAlive) {
          lock(m_workingNodes) {
-
-
-            lock(m_nodesToAdd) {
-               while (m_nodesToAdd.Count > 0) {
-                  m_workingNodes.Add(m_nodesToAdd.Dequeue());
-               }
-            }
-
+            ProcessNodesForAdding();
             if (m_workingNodes.Count == 0) {
                Thread.Sleep(1);
             }
-
-            var nodePositions = new Dictionary<Node, Vector3>();
-
-            foreach (Node node in m_workingNodes) {
-                List<Connection> connections = node.GetConnections();
-      
-               //TODO: Respect foreign key weights.
-               float desiredDistance = 100f;
-
-               if (node.isLinking()) {
-                  // Every node moves to attempt to make itself equidistant from every other node.
-                  for (int i = 0 ; i < connections.Count ; i++) {
-                     Node node1 = connections[i].node; 
-                     for (int j = 0 ; j < connections.Count ; j++) {
-                        if (i != j) {
-                           Node node2 = connections[j].node;
-
-                           Vector3 position1 = (nodePositions.ContainsKey(node1))
-                              ? nodePositions[node1]
-                              : node1.GetPosition();
-
-                           Vector3 position2 = (nodePositions.ContainsKey(node2))
-                              ? nodePositions[node2]
-                              : node2.GetPosition();
-
-                           Vector3 center = (position1 + position2)/2f;
-                           Vector3 desiredPosition1 = center + (center-position1).normalized * desiredDistance/2f;
-                           Vector3 desiredPosition2 = center + (center-position2).normalized * desiredDistance/2f;
-
-                           nodePositions[node1] = desiredPosition1;
-                           nodePositions[node2] = desiredPosition2;
-                        }
-                     }
-                  }
-               }
-               else { // not linking.
-                  // TODO: Implement movement for non-linking tables.
-               }
-            }
-
-            foreach (KeyValuePair<Node, Vector3> kvp in nodePositions) {
-               kvp.Key.SetPosition(kvp.Value);
-            }
-
-
-
+            MoveNodes();
          }
       }
+   }
+
+   private static void ProcessNodesForAdding()
+   {
+      lock(m_nodesToAdd) {
+         while (m_nodesToAdd.Count > 0) {
+            m_workingNodes.Add(m_nodesToAdd.Dequeue());
+         }
+      }
+   }
+
+   private static void MoveNodes()
+   {
+      var futurePositions = new Dictionary<Node, Vector3>();
+
+      foreach (Node node in m_workingNodes) {
+         MoveNode(node, ref futurePositions);
+      }
+
+      foreach (KeyValuePair<Node, Vector3> kvp in futurePositions) {
+         kvp.Key.SetPosition(kvp.Value);
+      }
+   }
+
+   private static void MoveNode(Node node, ref Dictionary<Node,Vector3> futurePositions)
+   {
+      List<Connection> connections = node.GetConnections();
+
+      // Every node moves to attempt to make itself equidistant from every other node.
+      for (int i = 0 ; i < connections.Count ; i++) {
+         if (node.isLinking()) {
+            for (int j = 0 ; j < connections.Count ; j++) {
+               if (i != j) {
+                  MoveRelative(connections[i].node, connections[j], ref futurePositions);
+               }
+            }
+         }
+         else { // not linking.
+            MoveRelative(node, connections[i], ref futurePositions);
+         }
+      }
+   }
+
+   private static void MoveRelative(Node node1, Connection connection, ref Dictionary<Node, Vector3> futurePositions) {
+      float desiredDistance = 100f; //TODO: Use connection to respect foreign key weights.
+
+      Node node2 = connection.node;
+
+      Vector3 position1 = (futurePositions.ContainsKey(node1))
+         ? futurePositions[node1]
+         : node1.GetPosition();
+
+      Vector3 position2 = (futurePositions.ContainsKey(node2))
+         ? futurePositions[node2]
+         : node2.GetPosition();
+
+      Vector3 center = (position1 + position2)/2f;
+      Vector3 desiredPosition1 = center + (center-position1).normalized * desiredDistance/2f;
+      Vector3 desiredPosition2 = center + (center-position2).normalized * desiredDistance/2f;
+
+      futurePositions[node1] = desiredPosition1;
+      futurePositions[node2] = desiredPosition2;
    }
 
 }

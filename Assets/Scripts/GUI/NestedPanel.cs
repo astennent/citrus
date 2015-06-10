@@ -63,8 +63,6 @@ public class NestedPanel : MonoBehaviour {
 
       RectTransform clientTransform = this.m_clientArea.GetComponent<RectTransform>();
       clientTransform.anchoredPosition = new Vector2(clientTransform.anchoredPosition.x, -Tab.GetHeight());
-
-      Redraw();
    }
 
    void Update() {
@@ -150,9 +148,6 @@ public class NestedPanel : MonoBehaviour {
       // In case something goes wrong and no MousePointerEnter event is triggered before dropping
       // off the tab that triggered this merge, set the living child as the default drag target.
       DragManager.SetDragTarget(livingChild.GetClientArea());
-
-      // Ensure that the new tab is selected.
-      NestedPanel.focusedPanel = livingChild;
 
       Destroy(gameObject); // Destroy the middle-man.
    }
