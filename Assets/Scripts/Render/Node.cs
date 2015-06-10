@@ -109,4 +109,8 @@ public class Node : MonoBehaviour {
 
    }
 
+   public void OnClick() {
+      GetComponent<Renderer>().material.color = Color.white;
+   }
+
 }
