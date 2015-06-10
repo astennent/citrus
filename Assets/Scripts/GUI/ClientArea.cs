@@ -103,7 +103,6 @@ public class ClientArea : DragTarget, IPointerEnterHandler, IPointerExitHandler
             fill.offsetMax = new Vector2(0, vOffset);
             break;
       }
-
    }
 
    public override void OnPointerEnter(PointerEventData eventData) {
@@ -118,5 +117,4 @@ public class ClientArea : DragTarget, IPointerEnterHandler, IPointerExitHandler
    public Rect GetBounds() {
       return GetComponent<RectTransform>().rect;
    }
-
 }

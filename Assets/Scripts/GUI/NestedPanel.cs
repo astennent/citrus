@@ -20,6 +20,23 @@ public class NestedPanel : MonoBehaviour {
 
    public RectTransform m_tabHolderTransform;
 
+   private static NestedPanel _focusedPanel;
+   public static NestedPanel focusedPanel {
+      get {
+         return _focusedPanel;
+      }
+      set {
+         if (_focusedPanel == value) {
+            return;
+         }
+         if (_focusedPanel) {
+            _focusedPanel.OnBlur();
+         }
+         _focusedPanel = value;
+         _focusedPanel.OnFocus();
+      }
+   }
+
    static NestedPanel Instantiate(NestedPanel parent) {
       NestedPanel panel = (NestedPanel)GameObject.Instantiate(PanelManager.GetNestedPanelPrefab(),
             Vector3.zero, new Quaternion(0,0,0,0));
@@ -34,6 +51,8 @@ public class NestedPanel : MonoBehaviour {
       // Set up resizer.
       panel.m_resizerButton.gameObject.SetActive(false);
 
+      panel.m_captionBar.GetComponent<UnityEngine.UI.Image>().color = GUISchemeManager.inactiveCaption;
+
       return panel;
    }
 
@@ -46,6 +65,13 @@ public class NestedPanel : MonoBehaviour {
       clientTransform.anchoredPosition = new Vector2(clientTransform.anchoredPosition.x, -Tab.GetHeight());
 
       Redraw();
+   }
+
+   void Update() {
+      if (IsLeaf() && (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1)) && 
+            ContainsMouse()) {
+         NestedPanel.focusedPanel = this;
+      }
    }
 
    public void AddTab(Tab tab) {
@@ -84,6 +110,7 @@ public class NestedPanel : MonoBehaviour {
 
       protege.m_captionBar.SelectTab(selectedTab);
       imposter.AddTab(insertedTab);
+      NestedPanel.focusedPanel = imposter;
 
       SetSplitRatio(splitRatio);
    } 
@@ -122,6 +149,9 @@ public class NestedPanel : MonoBehaviour {
       // In case something goes wrong and no MousePointerEnter event is triggered before dropping
       // off the tab that triggered this merge, set the living child as the default drag target.
       DragManager.SetDragTarget(livingChild.GetClientArea());
+
+      // Ensure that the new tab is selected.
+      NestedPanel.focusedPanel = livingChild;
 
       Destroy(gameObject); // Destroy the middle-man.
    }
@@ -212,7 +242,7 @@ public class NestedPanel : MonoBehaviour {
 
    public bool ContainsMouse() {
       return RectTransformUtility.RectangleContainsScreenPoint(GetComponent<RectTransform>(), 
-            Input.mousePosition, Camera.main);
+            Input.mousePosition, null);
    }
 
    public bool IsLeaf() {
@@ -222,4 +252,14 @@ public class NestedPanel : MonoBehaviour {
    public bool IsSplitVertical() {
       return m_splitVertical;
    }
+
+   private void OnFocus() {
+      m_captionBar.GetComponent<UnityEngine.UI.Image>().color = GUISchemeManager.activeCaption;
+      m_clientArea.
+   }
+
+   private void OnBlur() {
+      m_captionBar.GetComponent<UnityEngine.UI.Image>().color = GUISchemeManager.inactiveCaption;
+   }
+
 }

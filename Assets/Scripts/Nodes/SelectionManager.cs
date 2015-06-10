@@ -29,8 +29,10 @@ public class SelectionManager : MonoBehaviour {
             SelectNode(node);
          }
       } else {
-         ClearSelection();
-         SelectNode(node);
+         ClearSelection(node);
+         if (!selectedNodes.Contains(node)) {
+            SelectNode(node);
+         }
       }
    }
 
@@ -41,9 +43,11 @@ public class SelectionManager : MonoBehaviour {
       }
    }
 
-   private void ClearSelection() {
+   private void ClearSelection(Node exceptedNode = null) {
       foreach (Node node in selectedNodes) {
-         node.isSelected = false;
+         if (node != exceptedNode) {
+            node.isSelected = false;
+         }
       }
       selectedNodes.Clear();
    }
