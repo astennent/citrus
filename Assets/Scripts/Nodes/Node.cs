@@ -81,7 +81,6 @@ public class Node : MonoBehaviour {
       return m_desiredPosition;
    }
 
-
    public void Update()
    {
       Renderer renderer = GetComponent<Renderer>();
