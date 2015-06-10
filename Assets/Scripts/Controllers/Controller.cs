@@ -21,6 +21,14 @@ public abstract class Controller : MonoBehaviour {
       
    }
 
+   public virtual void OnFocus() {
+
+   }
+
+   public virtual void OnBlur() {
+      
+   }
+
    public Rect GetBounds() {
       return m_clientArea.GetBounds();
    }

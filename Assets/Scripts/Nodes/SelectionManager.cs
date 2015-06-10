@@ -5,9 +5,17 @@ public class SelectionManager : MonoBehaviour {
 
    HashSet<Node> selectedNodes = new HashSet<Node>();
 
-   void Update() {
+   // This is Late so that Panel selection can switch before processing the click.
+   void LateUpdate() {
       if (Input.GetMouseButtonDown(0)) {
-         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+
+         Camera focusedCamera = CitrusCamera.focusedCamera;
+         if (!focusedCamera) {
+            Utils.Log("no camera");
+            return;
+         }
+
+         Ray ray = focusedCamera.ScreenPointToRay(Input.mousePosition);
          RaycastHit hitInfo;
          if (Physics.Raycast(ray.origin, ray.direction, out hitInfo, 2000f)) {
             Node hitNode = hitInfo.collider.gameObject.GetComponent<Node>();

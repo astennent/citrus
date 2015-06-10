@@ -35,6 +35,10 @@ public class CameraController : Controller {
       RepositionCameraViewport();
    }
 
+   public override void OnFocus() {
+      CitrusCamera.focusedCamera = m_camera;
+   }
+
    private void RepositionCameraViewport() {
       RectTransform rectTransform = GetComponent<RectTransform>();
       Rect screenRect = Utils.GetScreenRect(rectTransform);

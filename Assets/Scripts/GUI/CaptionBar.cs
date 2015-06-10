@@ -36,7 +36,7 @@ public class CaptionBar : DragTarget {
    }
 
    public void AddTab(Tab tab, int insertionIndex = -1) {
-      tab.SetCaptionBar(this);
+      tab.captionBar = this;
       if (m_tabs.Contains(tab)) {
          return;
       }
@@ -77,7 +77,7 @@ public class CaptionBar : DragTarget {
       } 
 
       if (m_tabs.Count == 0) {
-         Controller orphanedController = tab.GetController();
+         Controller orphanedController = tab.controller;
          panel.OnLastTabRemoved(orphanedController);
       } 
       else {

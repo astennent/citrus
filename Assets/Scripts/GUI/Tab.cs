@@ -4,6 +4,26 @@ using UnityEngine.EventSystems;
 
 public class Tab : MonoBehaviour {
 
+
+   private Controller _controller;
+   public Controller controller {
+      get { return _controller; }
+      set {
+         _controller = value;
+         text.text = controller.GetName();
+      }
+   }
+
+   private CaptionBar _captionBar;
+   public CaptionBar captionBar {
+      get { return _captionBar; }
+      set {
+         _captionBar = value;
+         transform.SetParent(value.transform); //Bring to the front.
+         StartControllerDisplay();
+      }
+   }
+
    public static float GetWidth() {
       return DPIScaler.ScaleFrom96(70f);
    }
@@ -11,8 +31,6 @@ public class Tab : MonoBehaviour {
       return DPIScaler.ScaleFrom96(20f);
    }
 
-   private Controller m_controller;
-   private CaptionBar m_captionBar;
    private int m_renderIndex; // only used for animations, don't rely on this for actual logic.
 
    public UnityEngine.UI.Text text;
@@ -20,32 +38,17 @@ public class Tab : MonoBehaviour {
 	public static Tab Instantiate(Controller controller, CaptionBar captionBar) {
       Tab tab = (Tab)GameObject.Instantiate(PanelManager.GetTabPrefab(),
             Vector3.zero, new Quaternion(0,0,0,0));
-      tab.SetController(controller);
-      tab.SetCaptionBar(captionBar);
+      tab.controller = controller;
+      tab.captionBar = captionBar;
       return tab;
    }
 
-   public void SetCaptionBar(CaptionBar captionBar) {
-      m_captionBar = captionBar;
-      transform.SetParent(captionBar.transform); //Bring to the front.
-      StartControllerDisplay();
-   }
-
-   public void SetController(Controller controller) {
-      m_controller = controller;
-      text.text = controller.GetName();
-   }
-
-   public Controller GetController() {
-      return m_controller;
-   }
-
    public string GetName() {
-      return m_controller.GetName();
+      return controller.GetName();
    }
 
    public void OnPointerBeginDrag(BaseEventData data) {
-      m_captionBar.RemoveTab(this);
+      captionBar.RemoveTab(this);
       transform.SetParent(PanelManager.GetBottomCanvas().transform); //Send to back
       DragManager.StartDrag();
    }
@@ -57,7 +60,7 @@ public class Tab : MonoBehaviour {
    }
 
    public void OnPointerClick(BaseEventData data) {
-      m_captionBar.SelectTab(this);
+      captionBar.SelectTab(this);
    }
 
    public void SetActive(bool active) {
@@ -72,11 +75,13 @@ public class Tab : MonoBehaviour {
       colors.pressedColor = GUISchemeManager.pressedTab;
       buttonComponent.colors = colors;
 
-      m_controller.gameObject.SetActive(active);
+      controller.gameObject.SetActive(active);
       if (active) {
          StartControllerDisplay();
+         controller.OnFocus();
       } else {
-         m_controller.OnDisplayEnd();
+         controller.OnDisplayEnd();
+         controller.OnBlur();
       }
    }
 
@@ -95,7 +100,7 @@ public class Tab : MonoBehaviour {
    }
 
    private void StartControllerDisplay() {
-      m_controller.OnDisplayStart(m_captionBar.panel.GetClientArea());
+      controller.OnDisplayStart(captionBar.panel.GetClientArea());
    }
 
    void Update() {

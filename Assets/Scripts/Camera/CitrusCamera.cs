@@ -9,8 +9,14 @@ public class CitrusCamera : MonoBehaviour
    private float FREE_ROTATE_SPEED = 8f;
    private float FREE_MOVEMENT_SPEED = 5f;
 
+   public static Camera focusedCamera;
+
    void Update()
    {
+
+      if (GetComponent<Camera>() != focusedCamera) {
+         return;
+      }
 
       // Rotation
       if (Input.GetMouseButton(1)) {

@@ -76,10 +76,12 @@ public class NestedPanel : MonoBehaviour {
 
    public void AddTab(Tab tab) {
       m_captionBar.AddTab(tab);
+      NestedPanel.focusedPanel = this;
    }
 
    public void AddTab(Controller controller) {
       m_captionBar.AddTab(controller);
+      NestedPanel.focusedPanel = this;
    }
 
    public void Split(Tab insertedTab, bool isSplitVertical, bool newTabIsFirst) {
@@ -110,7 +112,6 @@ public class NestedPanel : MonoBehaviour {
 
       protege.m_captionBar.SelectTab(selectedTab);
       imposter.AddTab(insertedTab);
-      NestedPanel.focusedPanel = imposter;
 
       SetSplitRatio(splitRatio);
    } 
@@ -186,7 +187,7 @@ public class NestedPanel : MonoBehaviour {
    }
 
    private void RedrawLeaf() {
-      m_captionBar.GetSelectedTab().GetController().OnSize();
+      m_captionBar.GetSelectedTab().controller.OnSize();
    }
 
    private void RedrawBranch() {
@@ -255,11 +256,12 @@ public class NestedPanel : MonoBehaviour {
 
    private void OnFocus() {
       m_captionBar.GetComponent<UnityEngine.UI.Image>().color = GUISchemeManager.activeCaption;
-      m_clientArea.
+      m_captionBar.GetSelectedTab().controller.OnFocus();
    }
 
    private void OnBlur() {
       m_captionBar.GetComponent<UnityEngine.UI.Image>().color = GUISchemeManager.inactiveCaption;
+      m_captionBar.GetSelectedTab().controller.OnBlur();
    }
 
 }
