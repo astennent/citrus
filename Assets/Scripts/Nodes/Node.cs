@@ -19,6 +19,13 @@ public class Node : MonoBehaviour {
    public bool isSelected {
       get { return _isSelected; }
       set {
+         if (value) {
+            Utils.Log("My Position: " + transform.position);
+            List<Connection> cs = GetIncomingConnections();
+            foreach (Connection c in cs) {
+               Utils.Log("Other: " + c.node.transform.position);
+            }
+         }
          _isSelected = value;
          halo.SetActive(value);
          if (value) {
@@ -42,7 +49,8 @@ public class Node : MonoBehaviour {
    private LineRenderer lineRenderer;
    private Vector3 m_desiredPosition;
 
-   private Dictionary<ForeignKey, Connection> connectionCache = new Dictionary<ForeignKey, Connection>();
+   private Dictionary<ForeignKey, Connection> outgoingConnectionCache = new Dictionary<ForeignKey, Connection>();
+   private Dictionary<ForeignKey, List<Connection>> incomingConnectionCache = new Dictionary<ForeignKey, List<Connection>>();
 
    private static float NODE_SPEED = 1f;
 
@@ -95,26 +103,97 @@ public class Node : MonoBehaviour {
       }
    }
 
-   public List<Connection> GetConnections()
+   public List<Connection> GetOutgoingConnections()
    {
       var connections = new List<Connection>();
       foreach (ForeignKey foreignKey in row.table.foreignKeys) {
 
-         if (connectionCache.ContainsKey(foreignKey)) {
-            connections.Add(connectionCache[foreignKey]);
+         if (outgoingConnectionCache.ContainsKey(foreignKey)) {
+            connections.Add(outgoingConnectionCache[foreignKey]);
          } 
          else {
-
             string sourceValue = row[foreignKey.sourceColumn];
-            Row targetRow = foreignKey.targetTable.Get(foreignKey.targetColumn, sourceValue, true);
+            Row targetRow = foreignKey.targetTable.GetFirst(foreignKey.targetColumn, sourceValue, true);
             Node targetNode = NodeManager.GetNode(targetRow);
             if (targetNode != null) {
                Connection c = new Connection(foreignKey, targetNode);
                connections.Add(c);
-               connectionCache[foreignKey] = c;
+               outgoingConnectionCache[foreignKey] = c;
             }
          }
       }
+      return connections;
+   }
+
+   // This is a somewhat expensive operation. Try not to call in an unthreaded loop.
+   public List<Connection> GetIncomingConnections() {
+      var connections = new List<Connection>();
+
+      foreach (Table table in ProjectManager.activeProject.tables) {
+         foreach (ForeignKey foreignKey in table.foreignKeys) {
+
+            if (foreignKey.targetTable != row.table) {
+               continue;
+            }
+
+            if (incomingConnectionCache.ContainsKey(foreignKey)) {
+               foreach (Connection cachedConnection in incomingConnectionCache[foreignKey]) {
+                  connections.Add(cachedConnection);
+               }
+            }
+
+            else {
+               string myValue = row[foreignKey.targetColumn];
+               List<Row> matchedRows = 
+                     foreignKey.sourceTable.GetAll(foreignKey.sourceColumn, myValue, true);
+               if (matchedRows == null) {
+                  continue;
+               }
+               foreach (Row matchedRow in matchedRows) {
+                  Node matchedNode = NodeManager.GetNode(matchedRow);
+                  if (matchedNode != null) {
+                     Connection c = new Connection(foreignKey, matchedNode);
+                     connections.Add(c);
+                  }
+               }
+            }
+            
+         }
+      }
+
+      return connections;
+   }
+
+   /**
+    * Returns a list of all nodes directly connected to this node. Directly connected can be a link
+    * from a normal table to another normal table, or from a linking table connecting two normal
+    * tables.
+    */
+   public List<Connection> GetConnectedNodes() {
+      var connections = new List<Connection>();
+      var outgoingConnections = GetOutgoingConnections();
+      foreach (Connection outgoingConnection in outgoingConnections) {
+         if (!outgoingConnection.foreignKey.targetTable.isLinking) {
+            connections.Add(outgoingConnection);
+         }
+      }
+
+      var incomingConnections = GetIncomingConnections();
+      foreach (Connection incomingConnection in incomingConnections) {
+         if (incomingConnection.foreignKey.targetTable.isLinking) {
+            Node linkingNode = incomingConnection.node;
+            List<Connection> linkedTargets = linkingNode.GetOutgoingConnections();
+            foreach (Connection linkedConnection in linkedTargets) {
+               if (linkedConnection.node != this) {
+                  connections.Add(linkedConnection);
+               }
+            }
+         }
+         else {
+            connections.Add(incomingConnection);
+         }
+      }
+
       return connections;
    }
 
@@ -122,7 +201,7 @@ public class Node : MonoBehaviour {
    {
 
       if (isLinking()) {
-         List<Connection> connections = GetConnections();
+         List<Connection> connections = GetOutgoingConnections();
          lineRenderer.enabled = (connections.Count >= 2);
 
          // TODO: Make wheel spokes if this is larger than 2.

@@ -3,6 +3,32 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 
+class Query {
+   private Dictionary<string, List<Row> > m_map = new Dictionary<string, List<Row> >();
+
+   public List<Row> GetAll(string targetValue) {
+      if (m_map.ContainsKey(targetValue)) {
+         return m_map[targetValue];
+      }
+      return null;
+   }
+
+   public Row GetFirst(string targetValue) {
+      List<Row> fullList = GetAll(targetValue);
+      if (fullList != null) {
+         return fullList[0];
+      }
+      return null;
+   }
+
+   public void Add(string cellValue, Row row) {
+      if (!m_map.ContainsKey(cellValue)) {
+         m_map[cellValue] = new List<Row>();
+      }
+      m_map[cellValue].Add(row);
+   }
+}
+
 public class Table {
    private int consumedRowIndex = -1;
    private Row[] m_rows;
@@ -15,7 +41,7 @@ public class Table {
 
    private object threadStartAndStopper = new object(); //Used to lock around starting or ending threads.
 
-   private Dictionary<int, Dictionary<string, Row> >m_cachedQueries;
+   private Dictionary<int, Query> m_cachedQueries = new Dictionary<int, Query>();
 
    public Attribute[] attributes {get; private set; }
 
@@ -28,7 +54,7 @@ public class Table {
 
    public List<ForeignKey> foreignKeys {get; private set;}
    public void AddForeignKey(int sourceIndex, Table table, int columnIndex) {
-      foreignKeys.Add(new ForeignKey(sourceIndex, table, columnIndex));
+      foreignKeys.Add(new ForeignKey(this, sourceIndex, table, columnIndex));
       // TODO: Menu updates
    }
    public void RemoveForeignKey(ForeignKey key) {
@@ -64,7 +90,6 @@ public class Table {
    public Table(string[] lines) {
       m_rows = new Row[lines.Length];
       foreignKeys = new List<ForeignKey>();
-      m_cachedQueries = new Dictionary<int, Dictionary<string, Row>>();
       linesQueue = lines;
       parsedLineIndex = -1;
       state = TableState.PARSING;
@@ -73,7 +98,7 @@ public class Table {
       m_parsingThread.Start();
    }
 
-   public Row Get(int columnIndex, string targetValue, bool addIndex) {
+   public List<Row> GetAll(int columnIndex, string targetValue, bool addIndex) {
       if (state == TableState.PARSING) {
          return null;
       }
@@ -83,15 +108,22 @@ public class Table {
       }
 
       if (m_cachedQueries.ContainsKey(columnIndex)) {
-         Row cachedRow = null;
-         m_cachedQueries[columnIndex].TryGetValue(targetValue, out cachedRow);
-         return cachedRow;
+         return m_cachedQueries[columnIndex].GetAll(targetValue);
       }
 
+      List<Row> relevantRows = new List<Row>();
       foreach (Row row in m_rows) {
          if (row != null && row[columnIndex] == targetValue) {
-            return row;
+            relevantRows.Add(row);
          }
+      }
+      return relevantRows;
+   }
+
+   public Row GetFirst(int columnIndex, string targetValue, bool addIndex) {
+      List<Row> fullList = GetAll(columnIndex, targetValue, addIndex);
+      if (fullList != null && fullList.Count > 0) {
+         return fullList[0];
       }
       return null;
    }
@@ -103,12 +135,13 @@ public class Table {
          return;
       }
 
-      var columnCache = new Dictionary<string, Row>();
+      var query = new Query();
       foreach (Row row in m_rows) {
-         columnCache[row[columnIndex]] = row;
+         string cellValue = row[columnIndex];
+         query.Add(cellValue, row);
       }
 
-      m_cachedQueries[columnIndex] = columnCache;
+      m_cachedQueries[columnIndex] = query;
    }
 
    void ConsumeLines() {

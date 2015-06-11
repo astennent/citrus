@@ -1,17 +1,19 @@
 using UnityEngine;
 
 class ProjectManager : MonoBehaviour {
+
+   public static Project activeProject {get; private set;}
    
    void Start() {
 
-      Project project = OpenProject("DefaultProject.ctxp");
+      activeProject = OpenProject("DefaultProject.ctxp");
       string filename1 = "C:\\Users\\tenne_000\\Desktop\\Full Group Attributes.csv";
       string filename2 = "C:\\Users\\tenne_000\\Desktop\\Alliance Edge List - Names.csv";
       
-      Table fullGroupAttrs = project.OpenFile(filename1);
+      Table fullGroupAttrs = activeProject.OpenFile(filename1);
       fullGroupAttrs.Load();
       
-      Table edgesList = project.OpenFile(filename2);
+      Table edgesList = activeProject.OpenFile(filename2);
       edgesList.AddForeignKey(0, fullGroupAttrs, 1);
       edgesList.AddForeignKey(1, fullGroupAttrs, 1);
       edgesList.isLinking = true;

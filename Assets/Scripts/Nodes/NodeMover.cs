@@ -10,6 +10,9 @@ public class NodeMover : MonoBehaviour {
    private Thread m_movingThread;
 
    private static bool m_isAlive = true;
+   private static int MAX_DEPTH = 1;
+
+   private static Dictionary<Node, Vector3> futurePositions;
 
    void Start()
    {
@@ -53,10 +56,10 @@ public class NodeMover : MonoBehaviour {
 
    private static void MoveNodes()
    {
-      var futurePositions = new Dictionary<Node, Vector3>();
+      futurePositions = new Dictionary<Node, Vector3>();
 
       foreach (Node node in m_workingNodes) {
-         MoveNode(node, ref futurePositions);
+         MoveNode(node);
       }
 
       foreach (KeyValuePair<Node, Vector3> kvp in futurePositions) {
@@ -64,44 +67,57 @@ public class NodeMover : MonoBehaviour {
       }
    }
 
-   private static void MoveNode(Node node, ref Dictionary<Node,Vector3> futurePositions)
+   private static void MoveNode(Node node)
    {
-      List<Connection> connections = node.GetConnections();
+      if (node.isLinking()) {
+         return;
+      }
+
+      List<Connection> connections = node.GetConnectedNodes();
 
       // Every node moves to attempt to make itself equidistant from every other node.
       for (int i = 0 ; i < connections.Count ; i++) {
-         if (node.isLinking()) {
-            for (int j = 0 ; j < connections.Count ; j++) {
-               if (i != j) {
-                  MoveRelative(connections[i].node, connections[j], ref futurePositions);
-               }
-            }
-         }
-         else { // not linking.
-            MoveRelative(node, connections[i], ref futurePositions);
-         }
+         MoveRelative(node, connections[i], 0);
       }
    }
 
-   private static void MoveRelative(Node node1, Connection connection, ref Dictionary<Node, Vector3> futurePositions) {
-      float desiredDistance = 100f; //TODO: Use connection to respect foreign key weights.
-
+   private static void MoveRelative(Node node1, Connection connection, int depth) {
       Node node2 = connection.node;
+      if (node1 == node2) {
+         return;
+      }
+
+
+      if (depth < MAX_DEPTH) {
+         List<Connection> recursedConnections = node2.GetConnectedNodes();
+         foreach (Connection recursedConnection in recursedConnections) {
+            if (!recursedConnection.node.isLinking()) {
+               MoveRelative(node1, recursedConnection, depth+1);
+            }
+         }
+      }
 
       Vector3 position1 = (futurePositions.ContainsKey(node1))
          ? futurePositions[node1]
          : node1.GetPosition();
 
-      Vector3 position2 = (futurePositions.ContainsKey(node2))
+      Vector3 position2 = (futurePositions.ContainsKey(node2)) 
          ? futurePositions[node2]
          : node2.GetPosition();
 
       Vector3 center = (position1 + position2)/2f;
-      Vector3 desiredPosition1 = center + (center-position1).normalized * desiredDistance/2f;
-      Vector3 desiredPosition2 = center + (center-position2).normalized * desiredDistance/2f;
 
-      futurePositions[node1] = desiredPosition1;
-      futurePositions[node2] = desiredPosition2;
+
+      float desiredDistance = 75f; //TODO: Use connection to respect foreign key weights.
+      float currentDistance = Vector3.Distance(position1, position2);
+      if (depth == 0 || currentDistance < desiredDistance) {
+         Vector3 desiredPosition1 = center + (position1-center).normalized * desiredDistance/2f;
+         futurePositions[node1] = desiredPosition1;
+
+         Vector3 desiredPosition2 = center + (position2-center).normalized * desiredDistance/2f;
+         futurePositions[node2] = desiredPosition2;
+      }
+
    }
 
 }
