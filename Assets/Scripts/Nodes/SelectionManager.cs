@@ -26,7 +26,6 @@ public class SelectionManager : MonoBehaviour {
       }
    }   
 
-
    public void ClickNode(Node node) {
       bool ctrl = Input.GetButton("Ctrl");
 

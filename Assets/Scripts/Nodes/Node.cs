@@ -46,7 +46,6 @@ public class Node : MonoBehaviour {
       }
    }
 
-   private LineRenderer lineRenderer;
    private Vector3 m_desiredPosition;
 
    private Dictionary<ForeignKey, Connection> outgoingConnectionCache = new Dictionary<ForeignKey, Connection>();
@@ -60,7 +59,6 @@ public class Node : MonoBehaviour {
       Node node = (Node)GameObject.Instantiate(prefab, Vector3.zero, new Quaternion(0,0,0,0));
       node.row = _row;
       node.JumpToRandomPosition();
-      node.lineRenderer = node.GetComponent<LineRenderer>();
       NodeMover.AddNode(node);
       if (!node.isLinking()) {
          node.color = ColorManager.GenColor(ColorManager.Theme.BRIGHT);
@@ -195,25 +193,6 @@ public class Node : MonoBehaviour {
       }
 
       return connections;
-   }
-
-   public void LateUpdate() 
-   {
-
-      if (isLinking()) {
-         List<Connection> connections = GetOutgoingConnections();
-         lineRenderer.enabled = (connections.Count >= 2);
-
-         // TODO: Make wheel spokes if this is larger than 2.
-         for (int positionIndex = 0 ; positionIndex < connections.Count ; positionIndex++) {
-            Node targetNode = connections[positionIndex].node;
-            lineRenderer.SetPosition(positionIndex, targetNode.transform.position);
-         }
-      }
-      else {
-         //TODO.
-      }
-
    }
 
 }

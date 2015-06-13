@@ -6,6 +6,7 @@ using System.Threading;
 class NodeManager : MonoBehaviour {
 
    public Node nodePrefab = null;
+   public LineRenderer linePrefab = null; // TODO Should this be owned by NodeManager?
    private static NodeManager s_instance;
    private static Queue<Row> toLoad = new Queue<Row>();
    private static Queue<Row> toUnload = new Queue<Row>();
@@ -27,6 +28,10 @@ class NodeManager : MonoBehaviour {
    public static Node GetNodePrefab()
    {
       return s_instance.nodePrefab;
+   }
+
+   public static LineRenderer GetLinePrefab() {
+      return s_instance.linePrefab;
    }
    
    public static void Load(Row row)
