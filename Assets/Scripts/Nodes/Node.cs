@@ -48,10 +48,13 @@ public class Node : MonoBehaviour {
 
    private Vector3 m_desiredPosition;
 
-   private Dictionary<ForeignKey, Connection> outgoingConnectionCache = new Dictionary<ForeignKey, Connection>();
+   private List<Connection> outgoingConnectionCache = new List<Connection>();
    private Dictionary<ForeignKey, List<Connection>> incomingConnectionCache = new Dictionary<ForeignKey, List<Connection>>();
 
    private static float NODE_SPEED = 1f;
+
+   private Renderer m_renderer;
+   private EdgeRenderer m_edgeRenderer;
 
 
    public static Node Instantiate(Node prefab, Row _row)
@@ -63,6 +66,8 @@ public class Node : MonoBehaviour {
       if (!node.isLinking()) {
          node.color = ColorManager.GenColor(ColorManager.Theme.BRIGHT);
       }
+      node.m_renderer = node.GetComponent<Renderer>();
+      node.m_edgeRenderer = node.GetComponent<EdgeRenderer>();
       return node;
    }
 
@@ -89,8 +94,8 @@ public class Node : MonoBehaviour {
 
    public void Update()
    {
-      Renderer renderer = GetComponent<Renderer>();
-      renderer.enabled = !isLinking();
+      m_renderer.enabled = !isLinking();
+      m_edgeRenderer.enabled = (outgoingConnectionCache.Count > 0);
 
       float distanceToTarget = Vector3.Distance(transform.position, m_desiredPosition);
       if (distanceToTarget > .2) {
@@ -103,24 +108,27 @@ public class Node : MonoBehaviour {
 
    public List<Connection> GetOutgoingConnections()
    {
-      var connections = new List<Connection>();
+      if (outgoingConnectionCache.Count == row.table.foreignKeys.Count) {
+         return outgoingConnectionCache;
+      }
+      
       foreach (ForeignKey foreignKey in row.table.foreignKeys) {
 
-         if (outgoingConnectionCache.ContainsKey(foreignKey)) {
-            connections.Add(outgoingConnectionCache[foreignKey]);
-         } 
-         else {
-            string sourceValue = row[foreignKey.sourceColumn];
-            Row targetRow = foreignKey.targetTable.GetFirst(foreignKey.targetColumn, sourceValue, true);
-            Node targetNode = NodeManager.GetNode(targetRow);
-            if (targetNode != null) {
-               Connection c = new Connection(foreignKey, targetNode);
-               connections.Add(c);
-               outgoingConnectionCache[foreignKey] = c;
+         for (int i = 0 ; i < outgoingConnectionCache.Count ; i++) {
+            if (outgoingConnectionCache[i].foreignKey == foreignKey) {
+               continue; //already in cache.
             }
          }
+         string sourceValue = row[foreignKey.sourceColumn];
+         Row targetRow = foreignKey.targetTable.GetFirst(foreignKey.targetColumn, sourceValue, true);
+         Node targetNode = NodeManager.GetNode(targetRow);
+         if (targetNode) {
+            Connection c = new Connection(foreignKey, targetNode);
+            outgoingConnectionCache.Add(c);
+         }
       }
-      return connections;
+
+      return outgoingConnectionCache;
    }
 
    // This is a somewhat expensive operation. Try not to call in an unthreaded loop.
