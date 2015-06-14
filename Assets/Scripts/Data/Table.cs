@@ -4,18 +4,18 @@ using System.Collections.Generic;
 using System.Threading;
 
 class Query {
-   private Dictionary<string, List<Row> > m_map = new Dictionary<string, List<Row> >();
+   private Dictionary<string, List<Row> > m_map = new Dictionary<string, List<Row>>();
 
    public List<Row> GetAll(string targetValue) {
       if (m_map.ContainsKey(targetValue)) {
          return m_map[targetValue];
       }
-      return null;
+      return new List<Row>();
    }
 
    public Row GetFirst(string targetValue) {
       List<Row> fullList = GetAll(targetValue);
-      if (fullList != null) {
+      if (fullList.Count > 0) {
          return fullList[0];
       }
       return null;
@@ -30,6 +30,16 @@ class Query {
 }
 
 public class Table {
+
+   /**
+    * Version is used so that other classes can validate their data without Table being responsible
+    * for keeping them all in sync. Anything that uses this table that caches data should check the
+    * current version before using that cache. Any change to the rows of this table will iterate the
+    * current version, but external classes should not rely on newer versions being strictly greater
+    * than older ones.
+    */
+   public int version {get; private set;}
+
    private int consumedRowIndex = -1;
    private Row[] m_rows;
    private Thread m_loadingThread;
@@ -55,10 +65,12 @@ public class Table {
    public List<ForeignKey> foreignKeys {get; private set;}
    public void AddForeignKey(int sourceIndex, Table table, int columnIndex) {
       foreignKeys.Add(new ForeignKey(this, sourceIndex, table, columnIndex));
+      IterateVersion();
       // TODO: Menu updates
    }
    public void RemoveForeignKey(ForeignKey key) {
       foreignKeys.Remove(key);
+      IterateVersion();
       //TODO: Menu updates
    }
 
@@ -77,6 +89,7 @@ public class Table {
             Attribute attribute = attributes[i];
             attribute.name = (m_usesHeaders) ? m_rows[0][i] : ("Col" + i);
          }
+         IterateVersion();
       }
    }
 
@@ -100,7 +113,7 @@ public class Table {
 
    public List<Row> GetAll(int columnIndex, string targetValue, bool addIndex) {
       if (state == TableState.PARSING) {
-         return null;
+         return new List<Row>();
       }
 
       if (addIndex) {
@@ -122,7 +135,7 @@ public class Table {
 
    public Row GetFirst(int columnIndex, string targetValue, bool addIndex) {
       List<Row> fullList = GetAll(columnIndex, targetValue, addIndex);
-      if (fullList != null && fullList.Count > 0) {
+      if (fullList.Count > 0) {
          return fullList[0];
       }
       return null;
@@ -137,6 +150,9 @@ public class Table {
 
       var query = new Query();
       foreach (Row row in m_rows) {
+         if (row == null) {
+            break; // You haven't parsed beyond this.
+         }
          string cellValue = row[columnIndex];
          query.Add(cellValue, row);
       }
@@ -153,6 +169,7 @@ public class Table {
                parsedLineIndex++;
                string[] splitLine = CSVParser.SplitCsvLine(linesQueue[parsedLineIndex]);
                m_rows[parsedLineIndex] = new Row(this, splitLine);
+               version++;
             }
 
             if (parsedLineIndex == linesQueue.Length - 1) {
@@ -165,6 +182,7 @@ public class Table {
    }
 
    public Table(string[][] contents) {
+      version = 0;
       int numRows = contents.Length;
       m_rows = new Row[numRows];
       for (int rowIndex = 0 ; rowIndex < numRows ; rowIndex++) {
@@ -184,7 +202,7 @@ public class Table {
          string attributeName = (m_usesHeaders) ? m_rows[0][i] : "Col"+i;
          attributes[i] = new Attribute(attributeName);
       }
-      
+      IterateVersion();
    }
 
    public void Load() {
@@ -235,6 +253,11 @@ public class Table {
 
    private void OnFinishLoad() {
       state = TableState.LOADED;
+   }
+
+   private void IterateVersion() {
+      m_cachedQueries = new Dictionary<int, Query>();
+      version++;
    }
 
 }

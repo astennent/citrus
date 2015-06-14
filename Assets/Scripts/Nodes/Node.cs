@@ -42,13 +42,15 @@ public class Node : MonoBehaviour {
    private Vector3 m_desiredPosition;
 
    private List<Connection> outgoingConnectionCache = new List<Connection>();
-   private Dictionary<ForeignKey, List<Connection>> incomingConnectionCache = new Dictionary<ForeignKey, List<Connection>>();
+   private int outgoingCacheVersion = -1;
 
-   private static float NODE_SPEED = 1f;
+   private List<Connection> incomingConnectionCache = new List<Connection>();
+   private Dictionary<Table, int> incomingCacheVersions = new Dictionary<Table, int>();
 
    private Renderer m_renderer;
    private EdgeRenderer m_edgeRenderer;
 
+   private static float NODE_SPEED = 1f;
 
    public static Node Instantiate(Node prefab, Row _row)
    {
@@ -102,14 +104,14 @@ public class Node : MonoBehaviour {
 
    public List<Connection> GetOutgoingConnections()
    {
-
-      if (outgoingConnectionCache.Count > row.table.foreignKeys.Count) {
-         Utils.Assert("Fucked up");
-      }
-      if (outgoingConnectionCache.Count == row.table.foreignKeys.Count) {
+      // Check if the cache is valid.
+      if (outgoingCacheVersion == row.table.version && 
+          outgoingConnectionCache.Count == row.table.foreignKeys.Count) {
          return outgoingConnectionCache;
       }
       
+      // Cache is invalid, build a new one.
+      outgoingCacheVersion = row.table.version;
       List<Connection> replacementCache = new List<Connection>();
       foreach (ForeignKey foreignKey in row.table.foreignKeys) {
          string sourceValue = row[foreignKey.sourceColumn];
@@ -125,10 +127,24 @@ public class Node : MonoBehaviour {
       return outgoingConnectionCache;
    }
 
-   // This is a somewhat expensive operation. Try not to call in an unthreaded loop.
-   public List<Connection> GetIncomingConnections() {
-      var connections = new List<Connection>();
+   public List<Connection> GetIncomingConnections()
+   {
+      // Check if the cache is valid.
+      bool isCacheValid = true;
+      foreach (Table table in ProjectManager.activeProject.tables) {
+         if (!incomingCacheVersions.ContainsKey(table) || // This is a new key
+               incomingCacheVersions[table] != table.version) { // Version out of date 
+            isCacheValid = false;
+         }
+         break;
+      }
 
+      if (isCacheValid) {
+         return incomingConnectionCache;
+      }
+
+      // Cache is invalid, build a new one.
+      var replacementCache = new List<Connection>();
       foreach (Table table in ProjectManager.activeProject.tables) {
          foreach (ForeignKey foreignKey in table.foreignKeys) {
 
@@ -136,32 +152,22 @@ public class Node : MonoBehaviour {
                continue;
             }
 
-            if (incomingConnectionCache.ContainsKey(foreignKey)) {
-               foreach (Connection cachedConnection in incomingConnectionCache[foreignKey]) {
-                  connections.Add(cachedConnection);
+            string myValue = row[foreignKey.targetColumn];
+            List<Row> matchedRows = 
+                  foreignKey.sourceTable.GetAll(foreignKey.sourceColumn, myValue, true);
+            foreach (Row matchedRow in matchedRows) {
+               Node matchedNode = NodeManager.GetNode(matchedRow);
+               if (matchedNode != null) {
+                  Connection c = new Connection(foreignKey, matchedNode);
+                  replacementCache.Add(c);
                }
             }
-
-            else {
-               string myValue = row[foreignKey.targetColumn];
-               List<Row> matchedRows = 
-                     foreignKey.sourceTable.GetAll(foreignKey.sourceColumn, myValue, true);
-               if (matchedRows == null) {
-                  continue;
-               }
-               foreach (Row matchedRow in matchedRows) {
-                  Node matchedNode = NodeManager.GetNode(matchedRow);
-                  if (matchedNode != null) {
-                     Connection c = new Connection(foreignKey, matchedNode);
-                     connections.Add(c);
-                  }
-               }
-            }
-            
          }
+         incomingCacheVersions[table] = table.version;
       }
 
-      return connections;
+      incomingConnectionCache = replacementCache;
+      return incomingConnectionCache;
    }
 
    /**
@@ -169,7 +175,8 @@ public class Node : MonoBehaviour {
     * from a normal table to another normal table, or from a linking table connecting two normal
     * tables.
     */
-   public List<Connection> GetConnectedNodes() {
+   public List<Connection> GetConnectedNodes() 
+   {
       var connections = new List<Connection>();
       var outgoingConnections = GetOutgoingConnections();
       foreach (Connection outgoingConnection in outgoingConnections) {
