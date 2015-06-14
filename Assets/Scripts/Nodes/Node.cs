@@ -19,13 +19,6 @@ public class Node : MonoBehaviour {
    public bool isSelected {
       get { return _isSelected; }
       set {
-         if (value) {
-            Utils.Log("My Position: " + transform.position);
-            List<Connection> cs = GetIncomingConnections();
-            foreach (Connection c in cs) {
-               Utils.Log("Other: " + c.node.transform.position);
-            }
-         }
          _isSelected = value;
          halo.SetActive(value);
          if (value) {
