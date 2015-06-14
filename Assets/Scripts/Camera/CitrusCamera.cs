@@ -41,10 +41,11 @@ public class CitrusCamera : MonoBehaviour
 
       //Movement
       float forward = Input.GetAxis("Vertical") * FREE_MOVEMENT_SPEED * shiftVelocity;
+      float zoom = Input.GetAxis("Mouse ScrollWheel") * FREE_MOVEMENT_SPEED * shiftVelocity * 20;
       float strafe = Input.GetAxis("Horizontal") * FREE_MOVEMENT_SPEED * shiftVelocity;
       float strafeVertical = Input.GetAxis("StrafeVertical") * FREE_MOVEMENT_SPEED * shiftVelocity;
 
-      transform.position += transform.forward * forward;
+      transform.position += transform.forward * (forward+zoom);
       transform.position += transform.right * strafe;
       transform.position += transform.up * strafeVertical;
 
