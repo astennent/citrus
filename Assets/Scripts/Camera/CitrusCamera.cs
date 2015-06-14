@@ -6,10 +6,12 @@ public class CitrusCamera : MonoBehaviour
    float y;
    float shiftVelocity;
 
-   private float FREE_ROTATE_SPEED = 8f;
+   private float FREE_ROTATE_SPEED = 12f;
    private float FREE_MOVEMENT_SPEED = 5f;
 
    public static Camera focusedCamera;
+
+   private Quaternion m_desiredRotation;
 
    void Update()
    {
@@ -23,8 +25,11 @@ public class CitrusCamera : MonoBehaviour
          x = Input.GetAxis("Mouse X") * FREE_ROTATE_SPEED;
          y = Input.GetAxis("Mouse Y") * FREE_ROTATE_SPEED;
          
+         Quaternion oldRotation = transform.rotation;
          transform.RotateAround(transform.position, transform.right, -y);
          transform.RotateAround(transform.position, Vector3.up, x);
+         m_desiredRotation = transform.rotation;
+         transform.rotation = oldRotation;
       }
 
       if (Input.GetButton("Shift")) {
@@ -42,6 +47,8 @@ public class CitrusCamera : MonoBehaviour
       transform.position += transform.forward * forward;
       transform.position += transform.right * strafe;
       transform.position += transform.up * strafeVertical;
+
+      transform.rotation = Quaternion.Lerp(transform.rotation, m_desiredRotation, 0.5f);
    }
 
 
