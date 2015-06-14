@@ -20,10 +20,10 @@ public class Node : MonoBehaviour {
       get { return _isSelected; }
       set {
          _isSelected = value;
-         halo.SetActive(value);
          if (value) {
             halo.GetComponent<ParticleSystem>().startColor = color;
          }
+         halo.SetActive(value);
       }
    }
 
