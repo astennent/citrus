@@ -135,8 +135,8 @@ public class Node : MonoBehaviour {
          if (!incomingCacheVersions.ContainsKey(table) || // This is a new key
                incomingCacheVersions[table] != table.version) { // Version out of date 
             isCacheValid = false;
+            break;
          }
-         break;
       }
 
       if (isCacheValid) {
@@ -145,7 +145,10 @@ public class Node : MonoBehaviour {
 
       // Cache is invalid, build a new one.
       var replacementCache = new List<Connection>();
+      bool isMissingNode = false;
       foreach (Table table in ProjectManager.activeProject.tables) {
+         incomingCacheVersions[table] = table.version;
+
          foreach (ForeignKey foreignKey in table.foreignKeys) {
 
             if (foreignKey.targetTable != row.table) {
@@ -160,13 +163,19 @@ public class Node : MonoBehaviour {
                if (matchedNode != null) {
                   Connection c = new Connection(foreignKey, matchedNode);
                   replacementCache.Add(c);
+               } else {
+                  isMissingNode = true;
                }
             }
          }
-         incomingCacheVersions[table] = table.version;
       }
 
       incomingConnectionCache = replacementCache;
+      
+      if (isMissingNode) {
+         incomingCacheVersions.Clear(); // marks the cache as invalid.
+      }
+
       return incomingConnectionCache;
    }
 
