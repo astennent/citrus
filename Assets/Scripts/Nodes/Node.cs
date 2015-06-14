@@ -97,9 +97,10 @@ public class Node : MonoBehaviour {
       m_renderer.enabled = !isLinking();
       m_edgeRenderer.enabled = (outgoingConnectionCache.Count > 0);
 
-      float distanceToTarget = Vector3.Distance(transform.position, m_desiredPosition);
+      Vector3 currentPosition = transform.position;
+      float distanceToTarget = Vector3.Distance(currentPosition, m_desiredPosition);
       if (distanceToTarget > .2) {
-         transform.position = Vector3.Lerp(transform.position, m_desiredPosition, NODE_SPEED * Time.deltaTime);
+         transform.position = Vector3.Lerp(currentPosition, m_desiredPosition, NODE_SPEED * Time.deltaTime);
       }
       else if (distanceToTarget > 0) {
          transform.position = m_desiredPosition;
@@ -108,26 +109,26 @@ public class Node : MonoBehaviour {
 
    public List<Connection> GetOutgoingConnections()
    {
+
+      if (outgoingConnectionCache.Count > row.table.foreignKeys.Count) {
+         Utils.Assert("Fucked up");
+      }
       if (outgoingConnectionCache.Count == row.table.foreignKeys.Count) {
          return outgoingConnectionCache;
       }
       
+      List<Connection> replacementCache = new List<Connection>();
       foreach (ForeignKey foreignKey in row.table.foreignKeys) {
-
-         for (int i = 0 ; i < outgoingConnectionCache.Count ; i++) {
-            if (outgoingConnectionCache[i].foreignKey == foreignKey) {
-               continue; //already in cache.
-            }
-         }
          string sourceValue = row[foreignKey.sourceColumn];
          Row targetRow = foreignKey.targetTable.GetFirst(foreignKey.targetColumn, sourceValue, true);
          Node targetNode = NodeManager.GetNode(targetRow);
          if (targetNode) {
             Connection c = new Connection(foreignKey, targetNode);
-            outgoingConnectionCache.Add(c);
+            replacementCache.Add(c);
          }
       }
 
+      outgoingConnectionCache = replacementCache;
       return outgoingConnectionCache;
    }
 

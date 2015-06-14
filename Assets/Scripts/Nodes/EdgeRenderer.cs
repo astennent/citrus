@@ -9,21 +9,32 @@ class EdgeRenderer : MonoBehaviour {
    void LateUpdate() {
       List<Connection> connections = parentNode.GetOutgoingConnections();
 
-      UpdateLines(connections.Count);
-      
       bool isLinking = parentNode.isLinking();
-      if (m_lines.Count < 1 || (isLinking && m_lines.Count < 2)) {
+      bool is2WayLinking = (isLinking && connections.Count == 2);
+      UpdateLines( (is2WayLinking) ? 1 : connections.Count);
+      
+      if (m_lines.Count < 1) {
+         return;
+      }
+
+      if (is2WayLinking) {
+         LineRenderer line = m_lines[0];
+         Node node1 = connections[0].node;
+         Node node2 = connections[1].node;
+         line.SetPosition(0, node1.transform.position);
+         line.SetPosition(1, node2.transform.position);
+         line.SetColors(node1.color, node2.color);
          return;
       }
 
       Vector3 center = Vector3.zero;
 
-      if (isLinking) {
+      if (isLinking && !is2WayLinking) {
          Vector3 positionSum = Vector3.zero;
-         foreach (Connection connection in  connections) {
-            positionSum += connection.node.transform.position;
-            center = positionSum / connections.Count;
+         for (int i = 0 ; i < connections.Count ; i++) {
+            positionSum += connections[i].node.transform.position;
          }
+         center = positionSum / connections.Count;
       }
 
       for (var i = 0 ; i < m_lines.Count ; i++) {
