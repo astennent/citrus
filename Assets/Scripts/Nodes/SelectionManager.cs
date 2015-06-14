@@ -100,13 +100,17 @@ public class SelectionManager : MonoBehaviour {
       Camera camera = CitrusCamera.focusedCamera;
       if (camera != null) {
          m_draggingNode = node;
+         node.isDragging = true;
          Vector3 heading = node.transform.position - camera.transform.position;
          m_dragDistanceFromCamera = Vector3.Dot(heading, camera.transform.forward);
       }
    }
 
    private void StopDragging() {
-      m_draggingNode = null;
+      if (m_draggingNode != null) {
+         m_draggingNode.isDragging = false;
+         m_draggingNode = null;
+      }
    }
 
 

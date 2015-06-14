@@ -27,6 +27,8 @@ public class Node : MonoBehaviour {
       }
    }
 
+   public bool isDragging;
+
    private Color _color;
    public Color color {
       get { return _color; }
@@ -89,6 +91,11 @@ public class Node : MonoBehaviour {
 
    public void Update()
    {
+      // Do not update position while dragging.
+      if (isDragging) {
+         return;
+      }
+
       m_renderer.enabled = !isLinking();
       m_edgeRenderer.enabled = (outgoingConnectionCache.Count > 0);
 
@@ -196,7 +203,7 @@ public class Node : MonoBehaviour {
 
       var incomingConnections = GetIncomingConnections();
       foreach (Connection incomingConnection in incomingConnections) {
-         if (incomingConnection.foreignKey.targetTable.isLinking) {
+         if (incomingConnection.node.row.table.isLinking) {
             Node linkingNode = incomingConnection.node;
             List<Connection> linkedTargets = linkingNode.GetOutgoingConnections();
             foreach (Connection linkedConnection in linkedTargets) {

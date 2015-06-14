@@ -10,7 +10,7 @@ public class NodeMover : MonoBehaviour {
    private Thread m_movingThread;
 
    private static bool m_isAlive = true;
-   private static int MAX_DEPTH = 1;
+   private static int MAX_DEPTH = 2;
 
    private static Dictionary<Node, Vector3> futurePositions;
 
@@ -87,7 +87,6 @@ public class NodeMover : MonoBehaviour {
          return;
       }
 
-
       if (depth < MAX_DEPTH) {
          List<Connection> recursedConnections = node2.GetConnectedNodes();
          foreach (Connection recursedConnection in recursedConnections) {
@@ -110,14 +109,20 @@ public class NodeMover : MonoBehaviour {
 
       float desiredDistance = 75f; //TODO: Use connection to respect foreign key weights.
       float currentDistance = Vector3.Distance(position1, position2);
-      if (depth == 0 || currentDistance < desiredDistance) {
-         Vector3 desiredPosition1 = center + (position1-center).normalized * desiredDistance/2f;
+      Vector3 desiredPosition1 = position1;
+      Vector3 desiredPosition2 = position2;
+      if (depth == 0) {
+         desiredPosition1 = center + (position1-center).normalized * desiredDistance/2f;
+         desiredPosition2 = center + (position2-center).normalized * desiredDistance/2f;
+      }
+      else if (currentDistance < desiredDistance/2f) {
+         desiredPosition1 = position1 + (position1 - position2) / currentDistance;
          futurePositions[node1] = desiredPosition1;
-
-         Vector3 desiredPosition2 = center + (position2-center).normalized * desiredDistance/2f;
+         desiredPosition2 = position2 + (position2 - position1) / currentDistance;
          futurePositions[node2] = desiredPosition2;
       }
-
+      futurePositions[node1] = desiredPosition1;
+      futurePositions[node2] = desiredPosition2;
    }
 
 }
