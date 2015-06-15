@@ -79,6 +79,11 @@ public class Node : MonoBehaviour {
       return row.table.isLinking;
    }
 
+   /**
+    * Sets the desired position of the node, but does not immediately move it. This should only be
+    * used by NodeMover. If you want to set the desired position of a given node, use the function
+    * "NodeMover.SetNode(node, position)" as NodeMover will clobber anything it doesn't set itself.
+    */
    public void SetPosition(Vector3 position)
    {
       m_desiredPosition = position;

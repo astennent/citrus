@@ -91,7 +91,7 @@ public class SelectionManager : MonoBehaviour {
 
       foreach (Node node in selectedNodes) {
          Vector3 draggedPosition = node.transform.position + positionDelta;
-         node.SetPosition(draggedPosition);
+         NodeMover.SetPosition(node, draggedPosition);
          node.transform.position = draggedPosition; // Operate immediately.
       }
    }
