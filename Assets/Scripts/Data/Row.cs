@@ -4,7 +4,6 @@ using System.Collections;
 public class Row {
 
    private string[] m_contents;
-
    public Table table {get; private set;}
 
    public Row(Table _table, string[] contents) {

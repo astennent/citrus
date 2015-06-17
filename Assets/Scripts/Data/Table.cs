@@ -2,7 +2,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
+using System.Runtime.Serialization;
 
+[DataContract]
 class Query {
    private Dictionary<string, List<Row> > m_map = new Dictionary<string, List<Row>>();
 
@@ -29,7 +31,9 @@ class Query {
    }
 }
 
+[DataContract]
 public class Table {
+   private static int LINES_PER_FRAME = 1;
 
    /**
     * Version is used so that other classes can validate their data without Table being responsible
@@ -40,19 +44,26 @@ public class Table {
     */
    public int version {get; private set;}
 
-   private int consumedRowIndex = -1;
+   /**
+    * Id is a unique value per table used to identify tables after deserialization without using
+    * circular references.
+    */
+   public int id {get; private set;}
+
    private Row[] m_rows;
+   private int parsedLineIndex = -1; // linesQueue has been parsed up to and including this index.
+   
+   private int consumedRowIndex = -1;
    private Thread m_loadingThread;
 
-   private int parsedLineIndex = -1; // linesQueue has been parsed up to and including this index.
+   //[DataMember] // Should this be optional?
    private string[] linesQueue;
-   private int linesPerFrame = 1;
    private Thread m_parsingThread;
-
    private object threadStartAndStopper = new object(); //Used to lock around starting or ending threads.
 
    private Dictionary<int, Query> m_cachedQueries = new Dictionary<int, Query>();
 
+   [DataMember]
    public Attribute[] attributes {get; private set; }
 
    public enum TableState {
@@ -62,9 +73,11 @@ public class Table {
    }
    public TableState state {get; private set; }
 
+   [DataMember]
    public List<ForeignKey> foreignKeys {get; private set;}
+
    public void AddForeignKey(int sourceIndex, Table table, int columnIndex) {
-      foreignKeys.Add(new ForeignKey(this, sourceIndex, table, columnIndex));
+      foreignKeys.Add(new ForeignKey(id, sourceIndex, table.id, columnIndex));
       IterateVersion();
       // TODO: Menu updates
    }
@@ -101,6 +114,7 @@ public class Table {
    public bool isLinking = false;
 
    public Table(string[] lines) {
+      id = TableMap.Register(this);
       m_rows = new Row[lines.Length];
       foreignKeys = new List<ForeignKey>();
       linesQueue = lines;
@@ -164,7 +178,7 @@ public class Table {
       while(true) {
          lock(linesQueue) {
             int count = 0;
-            while (parsedLineIndex < linesQueue.Length - 1 && count < linesPerFrame) {
+            while (parsedLineIndex < linesQueue.Length - 1 && count < LINES_PER_FRAME) {
                count++;
                parsedLineIndex++;
                string[] splitLine = CSVParser.SplitCsvLine(linesQueue[parsedLineIndex]);
@@ -179,18 +193,6 @@ public class Table {
             }
          }
       }        
-   }
-
-   public Table(string[][] contents) {
-      version = 0;
-      int numRows = contents.Length;
-      m_rows = new Row[numRows];
-      for (int rowIndex = 0 ; rowIndex < numRows ; rowIndex++) {
-         string[] rowContents = contents[rowIndex];
-         m_rows[rowIndex] = new Row(this, rowContents);
-      }
-      parsedLineIndex = m_rows.Length - 1;
-      OnFinishParse();
    }
 
    // Called after m_rows has been set or built by the constructor or coroutine.

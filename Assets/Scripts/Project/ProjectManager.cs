@@ -1,4 +1,6 @@
+using System.IO;
 using UnityEngine;
+using System.Runtime.Serialization;
 
 class ProjectManager : MonoBehaviour {
 
@@ -18,6 +20,15 @@ class ProjectManager : MonoBehaviour {
       edgesList.AddForeignKey(1, fullGroupAttrs, 1);
       edgesList.isLinking = true;
       edgesList.Load();
+
+
+      MemoryStream stream = new MemoryStream();
+      DataContractSerializer ser = new DataContractSerializer(typeof(Project));
+      ser.WriteObject(stream, edgesList);
+
+      stream.Position = 0;
+      StreamReader sr = new StreamReader(stream);
+      Utils.Log(sr.ReadToEnd());
    }
 
    public Project OpenProject(string filename) {

@@ -1,7 +1,10 @@
 ﻿using System.Collections.Generic;
+using System.Runtime.Serialization;
 
+[DataContract]
 public class Project {
 
+   [DataMember]
    public List<Table> tables {get; private set;}
 
    public Project() {

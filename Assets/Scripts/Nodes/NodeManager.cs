@@ -13,16 +13,16 @@ class NodeManager : MonoBehaviour {
 
    private static object loaderLock = new object();
 
-   public static Dictionary<Table, Dictionary<Row, Node> > nodeMap {get; private set;}
+   public static Dictionary<Table, Dictionary<Row, Node>> nodeMap {get; private set;}
 
    private Thread m_movementThread;
 
    void Start()
    {
       s_instance = this;
+      nodeMap = new Dictionary<Table, Dictionary<Row, Node> >();
       StartCoroutine("LoadNodes");
       StartCoroutine("UnloadNodes");
-      nodeMap = new Dictionary<Table, Dictionary<Row, Node> >();
    }
 
    public static Node GetNodePrefab()
@@ -75,7 +75,7 @@ class NodeManager : MonoBehaviour {
             }
          }
          yield return 0;
-      }  
+      }
    }
 
    public static Node GetNode(Row row) {
