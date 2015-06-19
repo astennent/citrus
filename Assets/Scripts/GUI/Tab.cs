@@ -4,7 +4,6 @@ using UnityEngine.EventSystems;
 
 public class Tab : MonoBehaviour {
 
-
    private Controller _controller;
    public Controller controller {
       get { return _controller; }

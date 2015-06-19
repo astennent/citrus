@@ -8,7 +8,17 @@ public class PanelManager : MonoBehaviour {
    public CameraController cameraControllerPrefab;
    public Tab tabPrefab;
 
-   public NestedPanel root;
+   NestedPanel _root = null;
+   public static NestedPanel root {
+      get { 
+         return s_instance._root;
+      } 
+      set { 
+         s_instance._root = value;
+         value.transform.SetParent(s_instance.mainCanvas.transform);
+      }
+   }
+
    public UnityEngine.Canvas mainCanvas;
    public UnityEngine.Canvas topCanvas;
    public UnityEngine.Canvas bottomCanvas;
@@ -18,14 +28,15 @@ public class PanelManager : MonoBehaviour {
    // Use this for initialization
    void Start () {
       s_instance = this;
+      root = GameObject.FindGameObjectWithTag("RootPanel").GetComponent<NestedPanel>();
 
       // Set up tabs
-      GetRoot().AddTab(DummyController.Instantiate());
-      GetRoot().AddTab(DummyController.Instantiate());
-      GetRoot().AddTab(DummyController.Instantiate());
-      GetRoot().AddTab(DummyController.Instantiate());
-      GetRoot().AddTab(CameraController.Instantiate());
-      GetRoot().AddTab(CameraController.Instantiate());
+      root.AddTab(DummyController.Instantiate());
+      root.AddTab(DummyController.Instantiate());
+      root.AddTab(DummyController.Instantiate());
+      root.AddTab(DummyController.Instantiate());
+      root.AddTab(CameraController.Instantiate());
+      root.AddTab(CameraController.Instantiate());
    }
 
    public static NestedPanel GetNestedPanelPrefab() {
@@ -44,10 +55,6 @@ public class PanelManager : MonoBehaviour {
       return s_instance.cameraControllerPrefab;
    }
 
-   public static NestedPanel GetRoot() {
-      return s_instance.root;
-   }
-
    /**
     * Returns a canvas that can be used to render elements so that they are always on top.
     * This must be used when doing UI rendering that crosses between panels to ensure a consistent
@@ -58,11 +65,6 @@ public class PanelManager : MonoBehaviour {
    }
    public static Canvas GetBottomCanvas() {
       return s_instance.bottomCanvas;
-   }
-
-   public static void SetRoot(NestedPanel newRoot) {
-      s_instance.root = newRoot;
-      newRoot.transform.SetParent(s_instance.mainCanvas.transform);
    }
 
 }

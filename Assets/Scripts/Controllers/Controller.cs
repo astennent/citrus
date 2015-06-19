@@ -1,8 +1,13 @@
 using UnityEngine;
+using System.Runtime.Serialization;
 
+[DataContract]
 public abstract class Controller : MonoBehaviour {
 
    protected ClientArea m_clientArea;
+   
+   [DataMember]
+   protected AppState m_state;
 
    public virtual void OnDisplayStart(ClientArea clientArea) {
       m_clientArea = clientArea;
@@ -27,6 +32,14 @@ public abstract class Controller : MonoBehaviour {
 
    public virtual void OnBlur() {
       
+   }
+
+   public virtual void SetState(AppState state) {
+      m_state = state;
+   }
+
+   public AppState GetState() {
+      return m_state;
    }
 
    public Rect GetBounds() {

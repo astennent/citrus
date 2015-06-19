@@ -10,6 +10,7 @@ public class CameraController : Controller {
 
       controller.m_camera.transform.SetParent(null);
       controller.m_camera.transform.position = new Vector3(0, 0, -7);
+      controller.SetState(new CameraState());
       return controller;
    }
 

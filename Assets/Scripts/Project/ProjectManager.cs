@@ -21,14 +21,6 @@ class ProjectManager : MonoBehaviour {
       edgesList.isLinking = true;
       edgesList.Load();
 
-
-      MemoryStream stream = new MemoryStream();
-      DataContractSerializer ser = new DataContractSerializer(typeof(Project));
-      ser.WriteObject(stream, edgesList);
-
-      stream.Position = 0;
-      StreamReader sr = new StreamReader(stream);
-      Utils.Log(sr.ReadToEnd());
    }
 
    public Project OpenProject(string filename) {

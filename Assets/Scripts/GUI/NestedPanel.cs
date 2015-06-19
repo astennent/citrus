@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 
 public class NestedPanel : MonoBehaviour {
-
    private bool m_splitVertical; // if true, split is drawn up down, children are on left and right.
    private float m_splitRatio; // Distance from the top or left.
    
@@ -12,7 +11,6 @@ public class NestedPanel : MonoBehaviour {
    public NestedPanel m_secondChild; // bottom or right
 
    public CaptionBar m_captionBar;
-   
    public ClientArea m_clientArea;
 
    public UnityEngine.UI.Button m_resizerButton;
@@ -134,15 +132,15 @@ public class NestedPanel : MonoBehaviour {
          livingChild.transform.SetParent(parentTransform);
       
          // Recalculate sizes
-         PanelManager.GetRoot().Redraw();
+         PanelManager.root.Redraw();
       } 
       else {
          // If this is the root, the living child becomes the new root.
-         PanelManager.SetRoot(livingChild);
+         PanelManager.root = livingChild;
          RectTransform rootTransform = livingChild.GetComponent<RectTransform>();
          rootTransform.anchoredPosition = Vector2.zero;
          rootTransform.sizeDelta = Vector2.zero;
-         PanelManager.GetRoot().RedrawResizer();
+         PanelManager.root.RedrawResizer();
       }
 
       // In case something goes wrong and no MousePointerEnter event is triggered before dropping
@@ -257,6 +255,24 @@ public class NestedPanel : MonoBehaviour {
    private void OnBlur() {
       m_captionBar.GetComponent<UnityEngine.UI.Image>().color = GUISchemeManager.inactiveCaption;
       m_captionBar.GetSelectedTab().controller.OnBlur();
+   }
+
+   public PanelState GetState() {
+      PanelState state = new PanelState();
+      if (IsLeaf()) {
+         state.appStates = new List<AppState>();
+         foreach (Tab tab in m_captionBar.GetTabs()) {
+            AppState appState = tab.controller.GetState();
+            state.appStates.Add(appState);
+         }
+      } 
+      else {
+         state.splitRatio = m_splitRatio;
+         state.splitVertical = m_splitVertical;
+         state.firstChild = m_firstChild.GetState();
+         state.secondChild = m_secondChild.GetState(); 
+      }
+      return state;
    }
 
 }
