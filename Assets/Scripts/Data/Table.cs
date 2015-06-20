@@ -122,7 +122,9 @@ public class Table {
 
    public static Table ConstructFromFilePath(string filename) {
       string[] lines = FileReader.ReadFile(filename); // Can this be threaded?
-      return new Table(lines);
+      Table table = new Table(lines);
+      table.source = filename;
+      return table;
    }
 
    // Constructor
