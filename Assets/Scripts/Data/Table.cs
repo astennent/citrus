@@ -48,7 +48,14 @@ public class Table {
     * Id is a unique value per table used to identify tables after deserialization without using
     * circular references.
     */
+   [DataMember]
    public int id {get; private set;}
+
+   /**
+    * The source file of the table. This will need to be revisited to support loading sql databases.
+    */
+   [DataMember]
+   public string source {get; private set;}
 
    private Row[] m_rows;
    private int parsedLineIndex = -1; // linesQueue has been parsed up to and including this index.
@@ -59,19 +66,19 @@ public class Table {
    //[DataMember] // Should this be optional?
    private string[] linesQueue;
    private Thread m_parsingThread;
-   private object threadStartAndStopper = new object(); //Used to lock around starting or ending threads.
+   private object threadStartAndStopper = new object(); //Used to lock around starting/ending threads.
 
    private Dictionary<int, Query> m_cachedQueries = new Dictionary<int, Query>();
 
    [DataMember]
    public Attribute[] attributes {get; private set; }
 
-   public enum TableState {
+   public enum TableStage {
       PARSING, // This will be set if the table is constructed using a string[]
       UNLOADED, // Indicates that all lines are parsed, but nodes are either unloaded or loading
       LOADED, // Indicates nodes are all loaded.
    }
-   public TableState state {get; private set; }
+   public TableStage stage {get; private set; }
 
    [DataMember]
    public List<ForeignKey> foreignKeys {get; private set;}
@@ -94,7 +101,7 @@ public class Table {
       } private set {
          //TODO: Check if Loaded....this would remove or add a node.
          m_usesHeaders = value;
-         if (state == TableState.PARSING) {
+         if (stage == TableStage.PARSING) {
             return;
          }
 
@@ -113,20 +120,26 @@ public class Table {
     */
    public bool isLinking = false;
 
-   public Table(string[] lines) {
+   public static Table ConstructFromFilePath(string filename) {
+      string[] lines = FileReader.ReadFile(filename); // Can this be threaded?
+      return new Table(lines);
+   }
+
+   // Constructor
+   private Table(string[] lines) {
       id = TableMap.Register(this);
       m_rows = new Row[lines.Length];
       foreignKeys = new List<ForeignKey>();
       linesQueue = lines;
       parsedLineIndex = -1;
-      state = TableState.PARSING;
+      stage = TableStage.PARSING;
       m_parsingThread = new System.Threading.Thread(ConsumeLines);
       m_loadingThread = new System.Threading.Thread(GenerateNodes);
       m_parsingThread.Start();
    }
 
    public List<Row> GetAll(int columnIndex, string targetValue, bool addIndex) {
-      if (state == TableState.PARSING) {
+      if (stage == TableStage.PARSING) {
          return new List<Row>();
       }
 
@@ -197,7 +210,7 @@ public class Table {
 
    // Called after m_rows has been set or built by the constructor or coroutine.
    private void OnFinishParse() {
-      state = TableState.UNLOADED;
+      stage = TableStage.UNLOADED;
       int numColumns = m_rows[0].Length();
       attributes = new Attribute[numColumns];
       for (int i = 0 ; i < numColumns ; i++) {
@@ -215,9 +228,9 @@ public class Table {
    }
 
    public void Unload() {
-      // state will be parsing if we were still parsing, and we want to leave it that way.
-      if (state != TableState.PARSING) {
-         state = TableState.UNLOADED;
+      // stage will be parsing if we were still parsing, and we want to leave it that way.
+      if (stage != TableStage.PARSING) {
+         stage = TableStage.UNLOADED;
       }
       // Ensure that you are not Loading.
       lock (threadStartAndStopper) {
@@ -254,7 +267,7 @@ public class Table {
    }
 
    private void OnFinishLoad() {
-      state = TableState.LOADED;
+      stage = TableStage.LOADED;
    }
 
    private void IterateVersion() {

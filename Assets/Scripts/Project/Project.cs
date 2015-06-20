@@ -12,8 +12,7 @@ public class Project {
    }
 
    public Table OpenFile(string filename) {
-      string[] lines = FileReader.ReadFile(filename); // Can this be threaded?
-      var table = new Table(lines);
+      var table = Table.ConstructFromFilePath(filename);
       tables.Add(table);
       return table;
    }
