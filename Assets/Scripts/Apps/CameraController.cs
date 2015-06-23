@@ -5,8 +5,8 @@ public class CameraController : Controller {
    public Camera m_camera;
 
    public static CameraController Instantiate() {
-      CameraController controller = (CameraController)GameObject.Instantiate(PanelManager.GetCameraControllerPrefab(),
-            Vector3.zero, new Quaternion(0,0,0,0));
+      CameraController controller = (CameraController)GameObject.Instantiate(
+            ControllerPrefabs.Camera, Vector3.zero, new Quaternion(0,0,0,0));
 
       controller.m_camera.transform.SetParent(null);
       controller.m_camera.transform.position = new Vector3(0, 0, -7);

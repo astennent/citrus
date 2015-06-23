@@ -4,6 +4,7 @@ using System.Collections.Generic;
 public class SelectionManager : MonoBehaviour {
 
    HashSet<Node> selectedNodes = new HashSet<Node>();
+   public static Node lastSelectedNode {get; private set;}
 
    Node m_draggingNode;
    float m_dragDistanceFromCamera = 0;
@@ -68,6 +69,7 @@ public class SelectionManager : MonoBehaviour {
 
    private void SelectNode(Node node) {
       selectedNodes.Add(node);
+      lastSelectedNode = node;
       node.isSelected = true;
    }
 

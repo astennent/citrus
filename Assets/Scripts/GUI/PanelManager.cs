@@ -4,8 +4,6 @@ using System.Collections;
 public class PanelManager : MonoBehaviour {
 
    public NestedPanel nestedPanelPrefab;
-   public DummyController dummyControllerPrefab;
-   public CameraController cameraControllerPrefab;
    public Tab tabPrefab;
 
    NestedPanel _root = null;
@@ -34,8 +32,8 @@ public class PanelManager : MonoBehaviour {
       root.AddTab(DummyController.Instantiate());
       root.AddTab(DummyController.Instantiate());
       root.AddTab(DummyController.Instantiate());
-      root.AddTab(DummyController.Instantiate());
       root.AddTab(CameraController.Instantiate());
+      root.AddTab(InspectorController.Instantiate());
       root.AddTab(CameraController.Instantiate());
    }
 
@@ -45,14 +43,6 @@ public class PanelManager : MonoBehaviour {
 
    public static Tab GetTabPrefab() {
       return s_instance.tabPrefab;
-   }
-
-   public static DummyController GetDummyControllerPrefab() {
-      return s_instance.dummyControllerPrefab;
-   }
-
-   public static CameraController GetCameraControllerPrefab() {
-      return s_instance.cameraControllerPrefab;
    }
 
    /**
