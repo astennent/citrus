@@ -44,6 +44,7 @@ public class CameraController : Controller {
    }
 
    private void RepositionCameraViewport() {
+      
       RectTransform rectTransform = GetComponent<RectTransform>();
       Rect screenRect = Utils.GetScreenRect(rectTransform);
       screenRect.x /= Screen.width;

@@ -11,12 +11,20 @@ public abstract class DragTarget : MonoBehaviour, IPointerEnterHandler, IPointer
    // Start tracking the mouse
    public virtual void OnPointerEnter(PointerEventData eventData)
    {
-     StartCoroutine( "TrackPointer" );  
-     DragManager.SetDragTarget(this);
+      StartDragTracking();
    }
 
    // Stop tracking the mouse
    public virtual void OnPointerExit(PointerEventData eventData) {
+      StopDragTracking();
+   }
+
+   public void StartDragTracking() {
+      StartCoroutine( "TrackPointer" );  
+      DragManager.SetDragTarget(this);
+   }
+
+   public void StopDragTracking() {
       StopCoroutine( "TrackPointer" );
    }
 
