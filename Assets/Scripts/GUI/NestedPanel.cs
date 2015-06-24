@@ -64,9 +64,17 @@ public class NestedPanel : MonoBehaviour {
    }
 
    void Update() {
-      if (IsLeaf() && (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1)) && 
-            ContainsMouse()) {
+      bool leftButtonDown = Input.GetMouseButtonDown(0);
+      bool rightButtonDown = Input.GetMouseButtonDown(1);
+      if ((leftButtonDown || rightButtonDown) && IsLeaf() && ContainsMouse()) {
          NestedPanel.focusedPanel = this;
+
+         if (leftButtonDown) {
+            m_captionBar.GetSelectedTab().controller.OnLButtonDown();
+         } 
+         if (rightButtonDown) {
+            m_captionBar.GetSelectedTab().controller.OnRButtonDown();
+         }
       }
    }
 

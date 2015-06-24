@@ -34,6 +34,14 @@ public abstract class Controller : MonoBehaviour {
       
    }
 
+   public virtual void OnLButtonDown() {
+
+   }
+   
+   public virtual void OnRButtonDown() {
+      
+   }
+
    public virtual void SetState(AppState state) {
       m_state = state;
    }

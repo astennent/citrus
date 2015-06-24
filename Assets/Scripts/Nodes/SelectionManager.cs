@@ -18,33 +18,37 @@ public class SelectionManager : MonoBehaviour {
 
    Node m_draggingNode;
    float m_dragDistanceFromCamera = 0;
-   // This is Late so that Panel selection can switch before processing the click.
-   void LateUpdate() {
-      if (Input.GetMouseButtonDown(0)) {
 
-         Camera focusedCamera = CitrusCamera.focusedCamera;
-         if (!focusedCamera) {
-            Utils.Log("no camera");
-            return;
-         }
+   private static SelectionManager s_instance;
 
-         Ray ray = focusedCamera.ScreenPointToRay(Input.mousePosition);
-         RaycastHit hitInfo;
-         if (Physics.Raycast(ray.origin, ray.direction, out hitInfo, 2000f)) {
-            Node hitNode = hitInfo.collider.gameObject.GetComponent<Node>();
-            ClickNode(hitNode);
-            StartDragging(hitNode);
-         } else {
-            ClickNowhere();
-         }
-      }
+   void Start () {
+      s_instance = this;
+   }
 
+   void Update() {
       if (Input.GetMouseButtonUp(0)) {
          StopDragging();
       }
 
       ProcessDragging();
    }   
+
+   public static void HandleClick() {
+      Camera focusedCamera = CitrusCamera.focusedCamera;
+      if (!focusedCamera) {
+         return;
+      }
+
+      Ray ray = focusedCamera.ScreenPointToRay(Input.mousePosition);
+      RaycastHit hitInfo;
+      if (Physics.Raycast(ray.origin, ray.direction, out hitInfo, 2000f)) {
+         Node hitNode = hitInfo.collider.gameObject.GetComponent<Node>();
+         s_instance.ClickNode(hitNode);
+         s_instance.StartDragging(hitNode);
+      } else {
+         s_instance.ClickNowhere();
+      }
+   }
 
    public void ClickNode(Node node) {
       bool ctrl = Input.GetButton("Ctrl");

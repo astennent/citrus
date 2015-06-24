@@ -19,12 +19,16 @@ public class InspectorController : Controller {
          index = _index;
       }
 
-      public void Redraw(float halfWidth) {
+      public void Redraw(float width) {
+         float ratio = 0.5f; // TODO: Make this draggable.
+         float inverse = 1f - ratio;
+         float border = DPIScaler.ScaleFrom96(2);
          float height = DPIScaler.ScaleFrom96(ROW_HEIGHT);
-         left.sizeDelta = new Vector2(halfWidth, height);
-         right.sizeDelta = new Vector2(halfWidth, height);
-         left.anchoredPosition = new Vector2(0, (-index-1)*height);
-         right.anchoredPosition = new Vector2(halfWidth, (-index-1)*height);
+
+         left.sizeDelta = new Vector2(width*ratio - border, height - border);
+         right.sizeDelta = new Vector2(width*inverse - 2*border, height - border);
+         left.anchoredPosition = new Vector2(border, (-index-1)*height);
+         right.anchoredPosition = new Vector2(width*ratio + border, (-index-1)*height);
       }
 
       public void Destroy() {
@@ -38,7 +42,6 @@ public class InspectorController : Controller {
                ControllerPrefabs.Inspector, Vector3.zero, new Quaternion(0,0,0,0));
 
       SelectionManager.SubscribeToNodeSelection(controller.SetInspectedNode);
-      //SelectionManager.NodeSelected += new SelectionManager.NodeSelectedHandler(controller.SetInspectedNode);
       return controller;
    }
 
@@ -59,7 +62,7 @@ public class InspectorController : Controller {
    public override void OnSize() {
       base.OnSize();
       foreach (InspectorRow row in m_rows) {
-         row.Redraw(GetBounds().width/2f);
+         row.Redraw(GetBounds().width);
       }
    }
 
@@ -94,9 +97,8 @@ public class InspectorController : Controller {
       SimpleLabel leftSide = SimpleLabel.Instantiate(labelPrefab, scrollingContent.transform);
       SimpleLabel rightSide = SimpleLabel.Instantiate(labelPrefab, scrollingContent.transform);
 
-      float halfWidth = clientRect.width/2;
       InspectorRow row = new InspectorRow(leftSide.rectTransform, rightSide.rectTransform, index);
-      row.Redraw(halfWidth);
+      row.Redraw(clientRect.width);
       m_rows.Add(row);
 
       leftSide.text = attribute.name;

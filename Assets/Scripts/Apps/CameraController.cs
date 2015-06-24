@@ -21,11 +21,14 @@ public class CameraController : Controller {
       RepositionCameraViewport();
    }
 
-
    public override void OnDisplayEnd() {
       base.OnDisplayEnd();
       m_clientArea.GetComponent<UnityEngine.UI.Image>().color = new Color(0,0,0,0);
       m_camera.gameObject.SetActive(false);
+   }
+
+   public override void OnLButtonDown() {
+      SelectionManager.HandleClick();
    }
 
    public override string GetName() {
