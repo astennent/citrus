@@ -36,6 +36,9 @@ public class InspectorController : Controller {
    public static InspectorController Instantiate() {
       InspectorController controller = (InspectorController)GameObject.Instantiate(
                ControllerPrefabs.Inspector, Vector3.zero, new Quaternion(0,0,0,0));
+
+      SelectionManager.SubscribeToNodeSelection(controller.SetInspectedNode);
+      //SelectionManager.NodeSelected += new SelectionManager.NodeSelectedHandler(controller.SetInspectedNode);
       return controller;
    }
 
@@ -68,8 +71,10 @@ public class InspectorController : Controller {
    }
 
    private void SetInspectedNode(Node node) {
+      ClearRows();
+
       if (!node) {
-         return; // TODO: Clear.
+         return; 
       }
 
       Row row = node.row;

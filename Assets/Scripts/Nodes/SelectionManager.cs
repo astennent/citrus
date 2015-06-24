@@ -3,6 +3,16 @@ using System.Collections.Generic;
 
 public class SelectionManager : MonoBehaviour {
 
+   /**
+    * Fired on Node selection
+    */
+   private static event NodeSelectedHandler NodeSelected;
+   public delegate void NodeSelectedHandler(Node node);
+   public static void SubscribeToNodeSelection(NodeSelectedHandler handler) {
+      NodeSelected += handler;
+   }
+
+
    HashSet<Node> selectedNodes = new HashSet<Node>();
    public static Node lastSelectedNode {get; private set;}
 
@@ -65,12 +75,14 @@ public class SelectionManager : MonoBehaviour {
          node.isSelected = false;
       }
       selectedNodes.Clear();
+      NodeSelected(null);
    }
 
    private void SelectNode(Node node) {
       selectedNodes.Add(node);
       lastSelectedNode = node;
       node.isSelected = true;
+      NodeSelected(node);
    }
 
    private void UnselectNode(Node node) {
