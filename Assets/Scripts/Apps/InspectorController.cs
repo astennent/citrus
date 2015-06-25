@@ -27,8 +27,10 @@ public class InspectorController : Controller {
 
          left.sizeDelta = new Vector2(width*ratio - border, height - border);
          right.sizeDelta = new Vector2(width*inverse - 2*border, height - border);
-         left.anchoredPosition = new Vector2(border, (-index-1)*height);
-         right.anchoredPosition = new Vector2(width*ratio + border, (-index-1)*height);
+
+         float top = (-index-1)*height;
+         left.anchoredPosition = new Vector2(border, top);
+         right.anchoredPosition = new Vector2(width*ratio + border, top);
       }
 
       public void Destroy() {
@@ -84,7 +86,7 @@ public class InspectorController : Controller {
       Attribute[] attributes = row.table.attributes;
       int numRows = attributes.Length;
       Rect clientRect = m_clientArea.GetComponent<RectTransform>().rect;
-      scrollingContent.sizeDelta = new Vector2(0, DPIScaler.ScaleFrom96(ROW_HEIGHT)*numRows - clientRect.height);
+      scrollingContent.sizeDelta = new Vector2(0, (DPIScaler.ScaleFrom96(ROW_HEIGHT)+1)*numRows - clientRect.height);
 
       for (int i = 0 ; i < attributes.Length ; i++) {
          AddInspectorRow(attributes[i], row[i], i);
