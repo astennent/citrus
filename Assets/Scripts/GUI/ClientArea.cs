@@ -29,11 +29,11 @@ public class ClientArea : DragTarget, IPointerEnterHandler, IPointerExitHandler
          panel.Split(tab, splitVertical, isFirstChild);
       }
 
-      fill.gameObject.SetActive(false);
+      ActivateFillRect(false);
    }
 
    public override void OnPointerMoveWhileDragging(Vector2 mousePosition) {
-      fill.gameObject.SetActive(DragManager.IsDragging());
+      ActivateFillRect(DragManager.IsDragging());
       DragManager.SetDragTarget(this);
       FillSide side = GetFillSide(mousePosition);
       SetFillSide(side);
@@ -105,13 +105,18 @@ public class ClientArea : DragTarget, IPointerEnterHandler, IPointerExitHandler
       }
    }
 
+   private void ActivateFillRect(bool activate) {
+      fill.gameObject.SetActive(activate);
+      GetComponent<UnityEngine.UI.Mask>().enabled = !activate;
+   }
+
    public override void OnPointerEnter(PointerEventData eventData) {
       base.OnPointerEnter(eventData);
    }
 
    public override void OnPointerExit(PointerEventData eventData) {
       base.OnPointerExit(eventData);
-      fill.gameObject.SetActive(false);
+      ActivateFillRect(false);
    }
 
    public Rect GetBounds() {
