@@ -16,6 +16,9 @@ public class SelectionManager : MonoBehaviour {
    HashSet<Node> selectedNodes = new HashSet<Node>();
    public static Node lastSelectedNode {get; private set;}
 
+   public RectTransform selectionRect;
+   private Vector2 m_selectionStartPosition;
+
    Node m_draggingNode;
    float m_dragDistanceFromCamera = 0;
 
@@ -28,10 +31,15 @@ public class SelectionManager : MonoBehaviour {
    void Update() {
       if (Input.GetMouseButtonUp(0)) {
          StopDragging();
+         StopBoxing();
       }
 
       ProcessDragging();
    }   
+
+   void LateUpdate() {
+      ProcessBoxing();
+   }
 
    public static void HandleClick() {
       Camera focusedCamera = CitrusCamera.focusedCamera;
@@ -47,6 +55,7 @@ public class SelectionManager : MonoBehaviour {
          s_instance.StartDragging(hitNode);
       } else {
          s_instance.ClickNowhere();
+         s_instance.StartBoxing();
       }
    }
 
@@ -129,6 +138,28 @@ public class SelectionManager : MonoBehaviour {
          m_draggingNode.isDragging = false;
          m_draggingNode = null;
       }
+   }
+
+   private void StartBoxing() {
+      selectionRect.gameObject.SetActive(true);
+      m_selectionStartPosition = Input.mousePosition;
+   }
+
+   private void ProcessBoxing() {
+      if (selectionRect.gameObject.activeSelf) {
+         Vector2 mousePosition = Input.mousePosition;
+         Vector2 startPosition = m_selectionStartPosition;
+         float left = Mathf.Min(mousePosition.x, startPosition.x);
+         float right = Mathf.Max(mousePosition.x, startPosition.x);
+         float top = Mathf.Min(mousePosition.y, startPosition.y);
+         float bottom = Mathf.Max(mousePosition.y, startPosition.y);
+         selectionRect.position = new Vector2(left, top);
+         selectionRect.sizeDelta = new Vector2(right-left, bottom-top);
+      }
+   }
+
+   private void StopBoxing() {
+      selectionRect.gameObject.SetActive(false);
    }
 
 
