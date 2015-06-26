@@ -48,6 +48,8 @@ Temporary Items
 # =======================
 Library/*
 Temp/*
+Web Build/*
+WebGL Build/*
 *.meta
 citrus_Data/*
 *citrus.exe
