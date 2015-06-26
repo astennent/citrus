@@ -2,7 +2,8 @@ using UnityEngine;
 using System.Collections.Generic;
 
 public class InspectorController : Controller {
-   private static int ROW_HEIGHT = 20;
+   private static float ROW_HEIGHT = DPIScaler.ScaleFrom96(20);
+   private static float ROW_PADDING = DPIScaler.ScaleFrom96(2);
 
    public SimpleLabel labelPrefab;
    public RectTransform scrollingContent;
@@ -22,15 +23,15 @@ public class InspectorController : Controller {
       public void Redraw(float width) {
          float ratio = 0.5f; // TODO: Make this draggable.
          float inverse = 1f - ratio;
-         float border = DPIScaler.ScaleFrom96(2);
-         float height = DPIScaler.ScaleFrom96(ROW_HEIGHT);
+         float padding = ROW_PADDING;
+         float height = ROW_HEIGHT;
 
-         left.sizeDelta = new Vector2(width*ratio - border, height - border);
-         right.sizeDelta = new Vector2(width*inverse - 2*border, height - border);
+         left.sizeDelta = new Vector2(width*ratio - padding, height - padding);
+         right.sizeDelta = new Vector2(width*inverse - 2*padding, height - padding);
 
-         float top = (-index-1)*height;
-         left.anchoredPosition = new Vector2(border, top);
-         right.anchoredPosition = new Vector2(width*ratio + border, top);
+         float top = (-index-1)*height - padding;
+         left.anchoredPosition = new Vector2(padding, top);
+         right.anchoredPosition = new Vector2(width*ratio + padding, top);
       }
 
       public void Destroy() {
@@ -85,8 +86,7 @@ public class InspectorController : Controller {
       Row row = node.row;
       Attribute[] attributes = row.table.attributes;
       int numRows = attributes.Length;
-      Rect clientRect = m_clientArea.GetComponent<RectTransform>().rect;
-      scrollingContent.sizeDelta = new Vector2(0, (DPIScaler.ScaleFrom96(ROW_HEIGHT)+1)*numRows - clientRect.height);
+      scrollingContent.sizeDelta = new Vector2(0, ROW_HEIGHT*(numRows+1) + ROW_PADDING);
 
       for (int i = 0 ; i < attributes.Length ; i++) {
          AddInspectorRow(attributes[i], row[i], i);
