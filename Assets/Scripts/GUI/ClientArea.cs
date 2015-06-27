@@ -122,4 +122,9 @@ public class ClientArea : DragTarget, IPointerEnterHandler, IPointerExitHandler
    public Rect GetBounds() {
       return GetComponent<RectTransform>().rect;
    }
+
+   public bool ContainsMouse() {
+      return RectTransformUtility.RectangleContainsScreenPoint(GetComponent<RectTransform>(), 
+            Input.mousePosition, null);
+   }
 }

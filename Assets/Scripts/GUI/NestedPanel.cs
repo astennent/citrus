@@ -60,14 +60,14 @@ public class NestedPanel : MonoBehaviour {
       captionTransform.anchoredPosition = new Vector2(0, 0);
 
       RectTransform clientTransform = this.m_clientArea.GetComponent<RectTransform>();
-      clientTransform.sizeDelta = new Vector2(0, 0);
-      clientTransform.anchoredPosition = new Vector2(clientTransform.anchoredPosition.x, 0);
+      clientTransform.sizeDelta = new Vector2(0, -Tab.GetHeight());
+      clientTransform.anchoredPosition = new Vector2(clientTransform.anchoredPosition.x, -Tab.GetHeight());
    }
 
    void Update() {
       bool leftButtonDown = Input.GetMouseButtonDown(0);
       bool rightButtonDown = Input.GetMouseButtonDown(1);
-      if ((leftButtonDown || rightButtonDown) && IsLeaf() && ContainsMouse()) {
+      if ((leftButtonDown || rightButtonDown) && IsLeaf() && m_clientArea.ContainsMouse()) {
          NestedPanel.focusedPanel = this;
 
          if (leftButtonDown) {
@@ -241,11 +241,6 @@ public class NestedPanel : MonoBehaviour {
 
    public ClientArea GetClientArea() {
       return m_clientArea;
-   }
-
-   public bool ContainsMouse() {
-      return RectTransformUtility.RectangleContainsScreenPoint(GetComponent<RectTransform>(), 
-            Input.mousePosition, null);
    }
 
    public bool IsLeaf() {
