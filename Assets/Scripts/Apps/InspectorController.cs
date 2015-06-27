@@ -9,6 +9,9 @@ public class InspectorController : Controller {
    public RectTransform scrollingContent;
    private List<InspectorRow> m_rows = new List<InspectorRow>();
 
+   private Node m_currentNode;
+   private Node m_nodeToSet;
+
    class InspectorRow {
       RectTransform left;
       RectTransform right;
@@ -52,6 +55,12 @@ public class InspectorController : Controller {
       return "Inspector";
    }
 
+   void Update() {
+      if (m_currentNode != m_nodeToSet) {
+         UpdateNode(m_nodeToSet);
+      }
+   }
+
    public override void OnDisplayStart(ClientArea clientArea) {
       base.OnDisplayStart(clientArea);
       SetInspectedNode(SelectionManager.lastSelectedNode);
@@ -76,9 +85,20 @@ public class InspectorController : Controller {
       m_rows.Clear();
    }
 
-   private void SetInspectedNode(Node node) {
-      ClearRows();
+   public void SetInspectedNode(Node node) {
+      m_nodeToSet = node;
+   }
 
+   /**
+    * This is called by Update instead of directly for a couple reasons:
+    * 1) Rebuilding all the rows is expensive. Calling it multiple times in a row, like when boxing,
+    *    would cause the application to freeze for several seconds, and even crash.
+    * 2) Calls from a separate thread cannot construct and size InspectorRow objects. 
+    */
+   private void UpdateNode(Node node) {
+      m_currentNode = node;
+
+      ClearRows();
       if (!node) {
          return; 
       }
@@ -105,8 +125,5 @@ public class InspectorController : Controller {
 
       leftSide.text = attribute.name;
       rightSide.text = attributeValue;
-
-
-
    }
 }

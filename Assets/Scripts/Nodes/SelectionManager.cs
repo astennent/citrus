@@ -158,8 +158,33 @@ public class SelectionManager : MonoBehaviour {
       }
    }
 
+   private bool IsNodeInSelectionBox(Node node) {
+      if (node.isLinking()) {
+         return false;
+      }
+
+      Camera camera = CitrusCamera.focusedCamera;
+      if (camera == null) {
+         return false;
+      }
+
+      Vector3 point = camera.WorldToScreenPoint(node.transform.position);
+      if (point.z <= 0) {
+         return false; // Node is behind the camera.
+      }
+
+      Rect rect = selectionRect.rect;
+      Vector3 rectPoint = selectionRect.transform.position;
+      return (point.x > rectPoint.x && point.x < rectPoint.x + rect.width &&
+              point.y > rectPoint.y && point.y < rectPoint.y + rect.height);
+   }
+
    private void StopBoxing() {
       selectionRect.gameObject.SetActive(false);
+      List<Node> boxedNodes = NodeManager.Filter(IsNodeInSelectionBox);
+      foreach (Node node in boxedNodes) {
+         SelectNode(node);
+      }
    }
 
 

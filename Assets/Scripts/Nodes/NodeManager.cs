@@ -108,4 +108,19 @@ class NodeManager : MonoBehaviour {
       nodeMap[table].Remove(row);
    }
 
+   public delegate bool VisitorHandler(Node node);
+   public static List<Node> Filter(VisitorHandler visitor) {
+      var output = new List<Node>();
+      lock(loaderLock) {
+         foreach (Table table in nodeMap.Keys) {
+            foreach (Node node in nodeMap[table].Values) {
+               if (visitor(node)) {
+                  output.Add(node);
+               }
+            }
+         }
+      }
+      return output;
+   }
+
 }
