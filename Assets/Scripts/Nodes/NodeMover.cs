@@ -11,7 +11,7 @@ public class NodeMover : MonoBehaviour {
 
    private static bool m_isAlive = true;
    private static int MAX_DEPTH = 1;
-   private static float DEFAULT_DESIRED_DISTANCE = 100f;
+   private static float DEFAULT_DESIRED_DISTANCE = 110f;
 
    private static Dictionary<Node, Vector3> futurePositions = new Dictionary<Node, Vector3>();
 

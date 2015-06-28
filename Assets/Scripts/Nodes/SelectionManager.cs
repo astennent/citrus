@@ -50,13 +50,13 @@ public class SelectionManager : MonoBehaviour {
          return;
       }
 
-      bool doubleClicked = (Time.time - m_lastClickTime < DOUBLE_CLICK_TOLERANCE);
-      m_lastClickTime = Time.time;
 
       Ray ray = focusedCamera.ScreenPointToRay(Input.mousePosition);
       RaycastHit hitInfo;
       if (Physics.Raycast(ray.origin, ray.direction, out hitInfo, 2000f)) {
          Node hitNode = hitInfo.collider.gameObject.GetComponent<Node>();
+         bool doubleClicked = (Time.time - m_lastClickTime < DOUBLE_CLICK_TOLERANCE && 
+                              lastSelectedNode == hitNode);
          s_instance.ClickNode(hitNode, doubleClicked);
          s_instance.StartDragging(hitNode);
       } else {
@@ -64,6 +64,7 @@ public class SelectionManager : MonoBehaviour {
          s_instance.StartBoxing();
       }
 
+      m_lastClickTime = Time.time;
    }
 
    public void ClickNode(Node node, bool doubleClicked) {
