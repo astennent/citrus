@@ -19,6 +19,9 @@ public class SelectionManager : MonoBehaviour {
    public RectTransform selectionRect;
    private Vector2 m_selectionStartPosition;
 
+   private static float m_lastClickTime; // Used for tracking doubleclick
+   private static float DOUBLE_CLICK_TOLERANCE = 0.5f; //seconds
+
    Node m_draggingNode;
    float m_dragDistanceFromCamera = 0;
 
@@ -47,20 +50,33 @@ public class SelectionManager : MonoBehaviour {
          return;
       }
 
+      bool doubleClicked = (Time.time - m_lastClickTime < DOUBLE_CLICK_TOLERANCE);
+      m_lastClickTime = Time.time;
+
       Ray ray = focusedCamera.ScreenPointToRay(Input.mousePosition);
       RaycastHit hitInfo;
       if (Physics.Raycast(ray.origin, ray.direction, out hitInfo, 2000f)) {
          Node hitNode = hitInfo.collider.gameObject.GetComponent<Node>();
-         s_instance.ClickNode(hitNode);
+         s_instance.ClickNode(hitNode, doubleClicked);
          s_instance.StartDragging(hitNode);
       } else {
          s_instance.ClickNowhere();
          s_instance.StartBoxing();
       }
+
    }
 
-   public void ClickNode(Node node) {
+   public void ClickNode(Node node, bool doubleClicked) {
       bool ctrl = Input.GetButton("Ctrl");
+
+      if (doubleClicked) {
+         HashSet<Node> connectedNodes = ClusterManager.GetConnectedNodes(node);
+         foreach (Node connectedNode in connectedNodes) {
+            SelectNode(connectedNode);
+         }
+         SelectNode(node); // This should be the last selected.
+         return;
+      }
 
       if (ctrl) {
          if (selectedNodes.Contains(node)) {
@@ -72,7 +88,7 @@ public class SelectionManager : MonoBehaviour {
          if (!selectedNodes.Contains(node)) {
             ClearSelection();
             SelectNode(node);
-         }
+         } 
       }
    }
 
