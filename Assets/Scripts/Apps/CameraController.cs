@@ -40,7 +40,7 @@ public class CameraController : Controller {
    }
 
    public override void OnFocus() {
-      CitrusCamera.focusedCamera = m_camera;
+      GraphiteCamera.focusedCamera = m_camera;
    }
 
    private void RepositionCameraViewport() {

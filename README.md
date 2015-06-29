@@ -1,18 +1,18 @@
-Citrus
+Graphite
 ====
 
-Citrus Data Visualization
+Graphite Data Visualization
 
 Summary 
 --------
 
-Citrus is a program written in the Unity3D game engine which can be used to represent data visually. 
+Graphite is a program written in the Unity3D game engine which can be used to represent data visually. 
 Once imported into the program, this data can be navigated in 3D. 
 
 Departure from Iris
 -----------
 
-Citrus is an overhaul of the prototype iris.
+Graphite is an overhaul of the prototype iris.
 
 Notable departures from the original program include: 
 

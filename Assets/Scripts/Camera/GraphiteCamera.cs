@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class CitrusCamera : MonoBehaviour 
+public class GraphiteCamera : MonoBehaviour 
 {
    float x;
    float y;

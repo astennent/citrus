@@ -45,7 +45,7 @@ public class SelectionManager : MonoBehaviour {
    }
 
    public static void HandleClick() {
-      Camera focusedCamera = CitrusCamera.focusedCamera;
+      Camera focusedCamera = GraphiteCamera.focusedCamera;
       if (!focusedCamera) {
          return;
       }
@@ -121,7 +121,7 @@ public class SelectionManager : MonoBehaviour {
    }
 
    private void ProcessDragging() {
-      Camera camera = CitrusCamera.focusedCamera;
+      Camera camera = GraphiteCamera.focusedCamera;
       if (m_draggingNode == null || camera == null) {
          return;
       }
@@ -141,7 +141,7 @@ public class SelectionManager : MonoBehaviour {
    }
 
    private void StartDragging(Node node) {
-      Camera camera = CitrusCamera.focusedCamera;
+      Camera camera = GraphiteCamera.focusedCamera;
       if (camera != null) {
          m_draggingNode = node;
          node.isDragging = true;
@@ -180,7 +180,7 @@ public class SelectionManager : MonoBehaviour {
          return false;
       }
 
-      Camera camera = CitrusCamera.focusedCamera;
+      Camera camera = GraphiteCamera.focusedCamera;
       if (camera == null) {
          return false;
       }
