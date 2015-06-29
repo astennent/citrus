@@ -32,7 +32,7 @@ public class InspectorController : Controller {
          left.sizeDelta = new Vector2(width*ratio - padding, height - padding);
          right.sizeDelta = new Vector2(width*inverse - 2*padding, height - padding);
 
-         float top = (-index-1)*height - padding;
+         float top = (-index)*height - padding;
          left.anchoredPosition = new Vector2(padding, top);
          right.anchoredPosition = new Vector2(width*ratio + padding, top);
       }
@@ -106,7 +106,7 @@ public class InspectorController : Controller {
       Row row = node.row;
       Attribute[] attributes = row.table.attributes;
       int numRows = attributes.Length;
-      scrollingContent.sizeDelta = new Vector2(0, DPIScaler.ScaleFrom96(ROW_HEIGHT)*(numRows+1) + ROW_PADDING);
+      scrollingContent.sizeDelta = new Vector2(0, DPIScaler.ScaleFrom96(ROW_HEIGHT)*numRows + ROW_PADDING);
 
       for (int i = 0 ; i < attributes.Length ; i++) {
          AddInspectorRow(attributes[i], row[i], i);
