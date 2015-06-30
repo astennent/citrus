@@ -5,18 +5,15 @@ using UnityEngine.EventSystems;
 public class FileExplorer : MonoBehaviour {
 
    public RectTransform rectTransform;
+   public Resizer resizerButton;
 
    void Start () {
-
+      resizerButton.SubscribeToDrag(OnDragResizer);
    }
 
-   void Update () {
-
-   }
-
-   public void OnDragResizer(BaseEventData data) {
-      Vector2 delta = ((PointerEventData)data).delta;
+   public void OnDragResizer(Vector2 delta) {
       Vector2 currentSize = rectTransform.sizeDelta;
       rectTransform.sizeDelta = new Vector2(currentSize.x + delta.x, currentSize.y - delta.y);
    }
+
 }
