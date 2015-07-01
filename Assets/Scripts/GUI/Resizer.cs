@@ -5,7 +5,12 @@ using UnityEngine.Events;
 
 public class Resizer : MonoBehaviour {
 
-   public NestedPanel m_panel;
+   public Texture2D customCursorImage; // Used if m_direction is not set
+   public Vector2 customCursorSize = new Vector2(25, 25);
+   public CursorManager.DragDirection direction = CursorManager.DragDirection.NONE;
+
+   public bool ignoreHover = false;
+   public bool ignoreDrag = false;
 
    private bool m_isDragging = false;
    private bool m_isHovered = false;
@@ -22,11 +27,16 @@ public class Resizer : MonoBehaviour {
       m_trigger = gameObject.AddComponent<EventTrigger>();
       m_trigger.delegates = new List<EventTrigger.Entry>();
 
-      AddEvent(new UnityEngine.Events.UnityAction<BaseEventData>(OnPointerEnter), EventTriggerType.PointerEnter);
-      AddEvent(new UnityEngine.Events.UnityAction<BaseEventData>(OnPointerExit), EventTriggerType.PointerExit);
-      AddEvent(new UnityEngine.Events.UnityAction<BaseEventData>(OnPointerDrag), EventTriggerType.Drag);
-      AddEvent(new UnityEngine.Events.UnityAction<BaseEventData>(OnPointerBeginDrag), EventTriggerType.BeginDrag);
-      AddEvent(new UnityEngine.Events.UnityAction<BaseEventData>(OnPointerEndDrag), EventTriggerType.EndDrag);
+      if (!ignoreHover) {
+         AddEvent(new UnityEngine.Events.UnityAction<BaseEventData>(OnPointerEnter), EventTriggerType.PointerEnter);
+         AddEvent(new UnityEngine.Events.UnityAction<BaseEventData>(OnPointerExit), EventTriggerType.PointerExit);
+      }
+
+      if (!ignoreDrag) {
+         AddEvent(new UnityEngine.Events.UnityAction<BaseEventData>(OnPointerDrag), EventTriggerType.Drag);
+         AddEvent(new UnityEngine.Events.UnityAction<BaseEventData>(OnPointerBeginDrag), EventTriggerType.BeginDrag);
+         AddEvent(new UnityEngine.Events.UnityAction<BaseEventData>(OnPointerEndDrag), EventTriggerType.EndDrag);
+      }
    }
 
    private void AddEvent(UnityAction<BaseEventData> action, EventTriggerType triggerType) {
@@ -38,19 +48,24 @@ public class Resizer : MonoBehaviour {
       m_trigger.delegates.Add(entry);
    }
 
+   public void SwitchToHorizontalCursor() {
+      direction = CursorManager.DragDirection.HORIZONTAL;
+   }
+   public void SwitchToVerticalCursor(){
+      direction = CursorManager.DragDirection.VERTICAL;
+   }
+
    public void OnPointerDrag(BaseEventData data) {
       Vector2 delta = ((PointerEventData)data).delta;
       if (DragEvent != null) {
          DragEvent(delta);
       }
-      if (m_panel) {
-         m_panel.OnDragResizer(delta);
-      }
+      //   m_panel.OnDragResizer(delta);
    }
 
    public void OnPointerEnter(BaseEventData data) {
       m_isHovered = true;
-      CursorManager.StartDrawingResize(m_panel);
+      StartDrawing();
    }
 
    public void OnPointerExit(BaseEventData data) {
@@ -62,13 +77,21 @@ public class Resizer : MonoBehaviour {
 
    public void OnPointerBeginDrag(BaseEventData data) {
       m_isDragging = true;
-      CursorManager.StartDrawingResize(m_panel);
+      StartDrawing();
    }
 
    public void OnPointerEndDrag(BaseEventData data) {
       m_isDragging = false;
       if (!m_isHovered) {
          CursorManager.EndDrawingResize();
+      }
+   }
+
+   private void StartDrawing() {
+      if (direction != CursorManager.DragDirection.NONE) {
+         CursorManager.StartDrawing(direction);
+      } else {
+         CursorManager.StartDrawing(customCursorImage, DPIScaler.GetScalingFactor() * customCursorSize);
       }
    }
 

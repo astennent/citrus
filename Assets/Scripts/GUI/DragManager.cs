@@ -16,11 +16,9 @@ class DragManager {
 
    public static void StartDrag() {
       s_isDragging = true;
-      CursorManager.StartDrawingTabDrag();
    }
 
    public static void EndDrag() {
       s_isDragging = false;
-      CursorManager.StopDrawingTabDrag();
    }
 }

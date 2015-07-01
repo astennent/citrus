@@ -13,7 +13,7 @@ public class NestedPanel : MonoBehaviour {
    public CaptionBar m_captionBar;
    public ClientArea m_clientArea;
 
-   public UnityEngine.UI.Button m_resizerButton;
+   public Resizer m_resizerButton;
    private static int resizerWidth = 6;
 
    public RectTransform m_tabHolderTransform;
@@ -62,6 +62,8 @@ public class NestedPanel : MonoBehaviour {
       RectTransform clientTransform = this.m_clientArea.GetComponent<RectTransform>();
       clientTransform.sizeDelta = new Vector2(0, -Tab.GetHeight());
       clientTransform.anchoredPosition = new Vector2(clientTransform.anchoredPosition.x, -Tab.GetHeight());
+
+      m_resizerButton.SubscribeToDrag(OnDragResizer);
    }
 
    void Update() {
@@ -104,6 +106,11 @@ public class NestedPanel : MonoBehaviour {
 
       //Activate resizer.
       m_resizerButton.gameObject.SetActive(true);
+      if (isSplitVertical) {
+         m_resizerButton.SwitchToHorizontalCursor();
+      } else {
+         m_resizerButton.SwitchToVerticalCursor();
+      }
 
       // Deactivate self.
       m_captionBar.gameObject.SetActive(false);

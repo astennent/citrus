@@ -7,77 +7,52 @@ public class CursorManager : MonoBehaviour {
    public Texture2D upDownArrow;
    public Texture2D diagonalArrow;
 
-   public Texture2D dragImage;
+   private static bool m_isDrawing = false;
+   private static Texture2D m_cursorImage;
+   private static Vector2 m_textureSize;
 
-
-   static bool m_isDrawingResize = false;
-   static DragDirection m_direction = DragDirection.HORIZONTAL;
+   private static CursorManager s_instance;
 
    public enum DragDirection {
+      NONE,
       HORIZONTAL,
       VERTICAL,
       DIAGONAL // top left to botttom right. 
    }
 
-   public static void StartDrawingResize(NestedPanel panel) {
-      DragDirection direction = (panel == null) ? DragDirection.DIAGONAL :
-                                (panel.IsSplitVertical()) ? DragDirection.VERTICAL :
-                                DragDirection.HORIZONTAL;
-      StartDrawingResize(direction);
+   public static void StartDrawing(DragDirection direction) {
+      Texture2D texture = (direction == DragDirection.HORIZONTAL) ? s_instance.leftRightArrow :
+         (direction == DragDirection.VERTICAL) ? s_instance.upDownArrow :
+         s_instance.diagonalArrow;
+      Vector2 textureSize = Vector2.one * DPIScaler.ScaleFrom96(25f);
+      StartDrawing(texture, textureSize);
    }
 
-   public static void StartDrawingResize(DragDirection direction) {
+   public static void StartDrawing(Texture2D texture, Vector2 textureSize) {
       if (DragManager.IsDragging()) {
          return;
       }
       
       Cursor.visible = false;
-      m_isDrawingResize = true;
-      //resizeVerticalArrow = !panel.IsSplitVertical();
-      m_direction = direction;
+      m_isDrawing = true;
+      m_cursorImage = texture;
+      m_textureSize = textureSize;
    }
 
    public static void EndDrawingResize() {
       Cursor.visible = true;
-      m_isDrawingResize = false;
+      m_isDrawing = false;
    }
 
-   public static void StartDrawingTabDrag() {
-      // TODO: Screenshots!
-   }
-
-   public static void StopDrawingTabDrag() {
-
+   void Start() {
+      s_instance = this;
    }
 
    void OnGUI() {
-      if (!DragManager.IsDragging() && !m_isDrawingResize) {
+      if (!m_isDrawing) {
          return;
       }
-      
-      Rect cursorRect;
-      Texture2D cursorImage;
-      if (DragManager.IsDragging()) {
-         DragTarget hit = DragManager.GetCurrentTarget();
-         bool isOverCaption = (hit is CaptionBar);
-         if (isOverCaption) {
-            cursorRect = CreateRectOnMousePosition(Tab.GetTabSize());
-            cursorImage = dragImage;
-         } 
-         else {
-            cursorRect = CreateRectOnMousePosition(Tab.GetTabSize());
-            cursorImage = dragImage;
-         }
-      }
-      else {//(m_isDrawingResize) {
-         float cursorSize = DPIScaler.ScaleFrom96(25);
-         cursorRect = CreateRectOnMousePosition(Vector2.one * cursorSize);
-         cursorImage = (m_direction == DragDirection.HORIZONTAL) ? upDownArrow :
-                       (m_direction == DragDirection.VERTICAL) ? leftRightArrow :
-                       diagonalArrow; 
-      }
-
-      GUI.DrawTexture(cursorRect, cursorImage);
+      GUI.DrawTexture(CreateRectOnMousePosition(m_textureSize), m_cursorImage);
    }
 
    private static Rect CreateRectOnMousePosition(Vector2 dimensions) {
