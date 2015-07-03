@@ -29,10 +29,6 @@ public class CursorManager : MonoBehaviour {
    }
 
    public static void StartDrawing(Texture2D texture, Vector2 textureSize) {
-      if (DragManager.IsDragging()) {
-         return;
-      }
-      
       Cursor.visible = false;
       m_isDrawing = true;
       m_cursorImage = texture;
