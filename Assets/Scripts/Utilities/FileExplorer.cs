@@ -5,7 +5,7 @@ using UnityEngine.EventSystems;
 public class FileExplorer : MonoBehaviour {
 
    public RectTransform rectTransform;
-   public Resizer resizerButton;
+   public DraggableButton resizerButton;
 
    void Start () {
       resizerButton.SubscribeToDrag(OnDragResizer);

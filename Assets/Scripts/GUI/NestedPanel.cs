@@ -13,7 +13,7 @@ public class NestedPanel : MonoBehaviour {
    public CaptionBar m_captionBar;
    public ClientArea m_clientArea;
 
-   public Resizer m_resizerButton;
+   public DraggableButton m_resizerButton;
    private static int resizerWidth = 6;
 
    public RectTransform m_tabHolderTransform;

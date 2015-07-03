@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine.EventSystems;
 using UnityEngine.Events;
 
-public class Resizer : MonoBehaviour {
+public class DraggableButton : MonoBehaviour {
 
    public Texture2D customCursorImage; // Used if m_direction is not set
    public Vector2 customCursorSize = new Vector2(25, 25);
@@ -60,7 +60,6 @@ public class Resizer : MonoBehaviour {
       if (DragEvent != null) {
          DragEvent(delta);
       }
-      //   m_panel.OnDragResizer(delta);
    }
 
    public void OnPointerEnter(BaseEventData data) {
