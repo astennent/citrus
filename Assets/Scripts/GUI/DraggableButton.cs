@@ -25,7 +25,7 @@ public class DraggableButton : MonoBehaviour {
 
    void Start() {
       m_trigger = gameObject.AddComponent<EventTrigger>();
-      m_trigger.delegates = new List<EventTrigger.Entry>();
+      m_trigger.triggers = new List<EventTrigger.Entry>();
 
       if (!ignoreHover) {
          AddEvent(new UnityEngine.Events.UnityAction<BaseEventData>(OnPointerEnter), EventTriggerType.PointerEnter);
@@ -45,7 +45,7 @@ public class DraggableButton : MonoBehaviour {
       entry.callback = new EventTrigger.TriggerEvent();
       UnityEngine.Events.UnityAction<BaseEventData> callback = action;
       entry.callback.AddListener(callback);
-      m_trigger.delegates.Add(entry);
+      m_trigger.triggers.Add(entry);
    }
 
    public void SwitchToHorizontalCursor() {
